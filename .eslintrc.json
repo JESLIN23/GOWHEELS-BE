@@ -1,0 +1,49 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "plugins": ["prettier"],
+
+    "overrides": [
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        "no-undef": 0,
+        "no-unused-vars": 0,
+        "no-console": "warn"
+    }
+}
+
+// {
+//     "env": {
+//         "browser": true,
+//         "commonjs": true,
+//         "es2021": true
+//     },
+//     "extends": ["airbnb", "prettier", "plugin:node/recommended"],
+//     "plugins": ["prettier"],
+//     "overrides": [
+//     ],
+//     "parserOptions": {
+//         "ecmaVersion": "latest"
+//     },
+//     "rules": {
+//         "prettier/prettier": "error",
+//         "spaced-comment": "off",
+//         "consistent-return": "off",
+//         "func-names": "off",
+//         "object-shorthand": "off",
+//         "no-process-exit": "off",
+//         "no-param-reassign": "off",
+//         "no-underscore-dangle": "off",
+//         "class-methods-use-this": "off",
+//         "no-undef": 0,
+//         "no-unused-vars": ["error", {"argsIgnorePattern": "next|val|res|req"}],
+//         "no-console": "warn"
+//     }
+// }
