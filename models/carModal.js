@@ -31,7 +31,7 @@ const carSchema = new mongoose.Schema({
     maxLength: [20, 'Brand name must have lessthan 20 charactor'],
     trim: true,
   },
-  fuel: {
+  fuel: { 
     type: String,
     required: [true, 'Car must have a fuel type'],
     trim: true,
@@ -40,21 +40,25 @@ const carSchema = new mongoose.Schema({
       message: 'Fuel type should be petrol, diesel or electric',
     },
   },
-  segment: {
+  segment: { 
     type: String,
     required: [true, 'Segment type is required'],
     trim: true,
-    enum: {values: [hatchback, SUV, sedan, MPV, convertable, wagon], message: 'Segment type is invalid'}
+    enum: {values: ['hatchback', 'SUV', 'sedan', 'MPV', 'convertable', 'wagon'], message: 'Segment type is invalid'}
   },
   city: {
     type: String,
     required: [true, 'City is required']
   },
-  price: {
+  price: { 
     type: Number,
     required: [true, 'Price is required']
   },
-  isActive: {
+  image: {
+    type: String,
+    required: [true, 'A car must have an image']
+  },
+  active: {
     type: Boolean,
     default: true
   },
@@ -68,7 +72,10 @@ const carSchema = new mongoose.Schema({
   BookedTo: {
     type: Date
   }
-});
+},{
+    toJSON: { virtuals: true},
+    toObject: { virtuals: true}
+}); 
 
 const Cars = mongoose.model('Cars', carSchema);
 

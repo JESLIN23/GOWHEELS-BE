@@ -6,6 +6,8 @@ const xss = require('xss-clean')
 const helmet = require('helmet')
 const mongan = require('morgan')
 
+const globalErrorHandler = require('./controllers/errorController')
+const AppError = require('./utils/appError')
 const userRouter = require('./routes/userRouter')
 const carRouter = require('./routes/carRouter')
 
@@ -32,8 +34,11 @@ app.use(xss())
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/car', carRouter)
 
-// app.use('*', (req, res, next) => {
-//   next(new AppError(`Can't find ${req.originalUrl} from this server`, 404))
-// })
+app.all('*', (req, res, next) => {  
+  next(new AppError(`Can't find ${req.originalUrl} from this server`, 404))
+})  
+
+app.use(globalErrorHandler)
+
 
 module.exports = app
