@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
+const bcrypt = require('bcryptjs')
 
-const userSchena = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: [true, 'Please tell us your first name!'],
@@ -20,18 +21,19 @@ const userSchena = new mongoose.Schema({
         type: String,
         required: [true, 'Please provide your email'],
         trim: true,
-        unique: [true, 'This email is already using. Please try another'],
-        validate: [validator.isEmail, 'Please provide a valid email']
+        unique: true,
+        validate: [validator.isEmail, 'Please provide a valid email'],
+        lowercase: true
     },
     gender: {
         type: String,
         trim: true,
-        enum: {values: [male, female, other], message: 'Please provide a valid gender'}
+        enum: {values: ['male', 'female', 'other'], message: 'Please provide a valid gender'}
     },
-    date_of_birth: {
+    date_of_birth: { 
         type: Date,
         required: [true, 'Please tell us your age'],
-        validate: {
+        validate: { 
             validator: function(val) {
                 return 
             }
@@ -40,11 +42,10 @@ const userSchena = new mongoose.Schema({
     phone: {
         type: Number,
         required: [true, 'Please provide your phone number'],
-        trim: true,
-        unique: [true, 'This phone number is already used. Please try another'],
+        unique: true,
         validate: {
             validator: function(val) {
-                return val.length === 10;
+                return String(val).length === 10;
             },
             message: 'Phone number is not valid'
         }
@@ -55,7 +56,7 @@ const userSchena = new mongoose.Schema({
         minLength: [8, 'Password should contain atleast 8 charactor'],
         select: false
     },
-    passwordConfirm: {
+    passwordConfirm: { 
         type: String,
         required: [true, 'Please confirm your password'],
         validate: {
@@ -70,10 +71,21 @@ const userSchena = new mongoose.Schema({
         type: Boolean,
         default: true,
         select: false
+    },
+    photo: {
+        type: String
     }
 
 })
 
-const User = mongoose.model('User', userSchena)
+userSchema.pre('save',async function (next) {
+    if (!this.isModified('password')) return next()
+
+    this.password = await bcrypt.hash(this.password, 12)
+    this.passwordConfirm = undefined;
+    next()
+})
+
+const User = mongoose.model('User', userSchema)
 
 module.exports = User
