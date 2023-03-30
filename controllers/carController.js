@@ -1,7 +1,7 @@
 const Cars = require('../models/carModal');
 const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('./../utils/appError')
+const AppError = require('./../utils/appError');
 
 const getAllCar = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(Cars.find(), req.query)
@@ -24,7 +24,7 @@ const getAllCar = catchAsync(async (req, res, next) => {
 const getCar = catchAsync(async (req, res, next) => {
   const car = await Cars.findById(req.params.id);
 
-  if (!car) return next(new AppError('No car found with that ID', 404))
+  if (!car) return next(new AppError('No car found with that ID', 404));
 
   res.status(200).json({
     status: 'success',
@@ -50,7 +50,7 @@ const updateCar = catchAsync(async (req, res, next) => {
     runValidators: true,
   });
 
-  if (!car) return next(new AppError('No car found with that ID', 404))
+  if (!car) return next(new AppError('No car found with that ID', 404));
 
   res.status(200).json({
     status: 'success',
@@ -61,9 +61,9 @@ const updateCar = catchAsync(async (req, res, next) => {
 });
 
 const deleteCar = catchAsync(async (req, res, next) => {
-  const car = await Cars.findByIdAndDelete(req.params.id); 
+  const car = await Cars.findByIdAndDelete(req.params.id);
 
-  if (!car) return next(new AppError('No car found with that ID', 404))
+  if (!car) return next(new AppError('No car found with that ID', 404));
 
   res.status(204).json({
     status: 'success',
