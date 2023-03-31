@@ -56,9 +56,9 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    select: false,
     required: [true, 'Please provide a password'],
     minLength: [8, 'Password should contain atleast 8 charactor'],
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -77,8 +77,8 @@ const userSchema = new mongoose.Schema({
   },
   active: {
     type: Boolean,
-    select: false,
     default: true,
+    select: false,
   },
   photo: {
     type: String,
@@ -95,6 +95,18 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined;
   next();
 });
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.lastPasswordChangedAt = Date.now() - 1000;
+  next();
+});
+
+userSchema.pre(/^find/, function (next) {
+    this.find({ active: { $ne: false }})
+    next()
+})
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,
@@ -121,6 +133,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
+
   this.passwordResetExpire = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };
