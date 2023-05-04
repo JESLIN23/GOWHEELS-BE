@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
+const crypto = require('crypto');
 
 const User = require('../models/userModal');
 const AppError = require('../utils/appError');
@@ -9,6 +10,33 @@ const sendEmail = require('../utils/email');
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+const createSendJWTToken = (user, statusCode, res) => {
+  const token = signToken(user.id);
+
+  const cookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIES_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    cookieOptions.secure = true;
+  }
+
+  res.cookie('jwt', token, cookieOptions);
+
+  user.password = undefined;
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
   });
 };
 
@@ -25,15 +53,7 @@ const signup = catchAsync(async (req, res, next) => {
     photo: req.body.photo,
   });
 
-  const token = signToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendJWTToken(newUser, 201, res);
 });
 
 const login = catchAsync(async (req, res, next) => {
@@ -48,12 +68,7 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendJWTToken(user, 200, res);
 });
 
 const protect = catchAsync(async (req, res, next) => {
@@ -96,7 +111,12 @@ const restrictTo = (...roles) => {
 
 const forgotPassword = catchAsync(async (req, res, next) => {
   //1)get user based on POSTed email
-  const user = await User.findOne({ email: req.body.email });
+  const email = req.body.email;
+  if (!email) {
+    return next(new AppError('Please provide email.', 400));
+  }
+
+  const user = await User.findOne({ email });
 
   if (!user) {
     return next(new AppError('There is no user with email address', 404));
@@ -110,8 +130,8 @@ const forgotPassword = catchAsync(async (req, res, next) => {
     'host'
   )}/api/v1/user/resetPassword/${resetToken}`;
 
-  const message = `Forgot your password? Submit a PATCH request with new password
-   and passWord confirm to ${resetURL}. \n If no, then ignore`;
+  const message = `Forgot your password? Submit a request with new password
+   and passWord confirm to ${resetURL}. \n If no, then ignore this email.`;
 
   try {
     await sendEmail({
@@ -127,14 +147,60 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   } catch (error) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false }); //when creating the token document was not saved, it is now.
+
+    await user.save({ validateBeforeSave: false });
+
     return next(
-      new AppError('There was an error sending the email. Try Again', 500)
+      new AppError(
+        'There was an error sending the email. Try again later.',
+        500
+      )
     );
   }
 });
 
-const resetPassword = catchAsync(async (req, res, next) => {});
+const resetPassword = catchAsync(async (req, res, next) => {
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(
+      new AppError('Token is invalid or has expired. Please try again', 400)
+    );
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+
+  await user.save();
+
+  createSendJWTToken(user, 200, res);
+});
+
+const updatePassword = catchAsync(async (req, res, next) => {
+  const { currentPassword, password, passwordConfirm } = req.body;
+  const user = await User.findById(req.user.id).select('+password');
+
+  if (!(await user.correctPassword(currentPassword, user.password))) {
+    return next(new AppError('Your current password id wrong!', 401));
+  }
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+
+  await user.save();
+
+  createSendJWTToken(user, 200, res);
+});
 
 module.exports = {
   signup,
@@ -143,4 +209,5 @@ module.exports = {
   restrictTo,
   forgotPassword,
   resetPassword,
+  updatePassword,
 };
