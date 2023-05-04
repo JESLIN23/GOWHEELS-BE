@@ -1,20 +1,29 @@
 const express = require('express');
 const router = express.Router();
 
-const { protect, restrictTo } = require('../controllers/authController');
-const {
-  getCar,
-  getAllCar,
-  updateCar,
-  createCar,
-  deleteCar,
-} = require('../controllers/carController');
+const authController = require('../controllers/authController');
+const carController = require('../controllers/carController');
 
-router.route('/').get(getAllCar).post(protect, restrictTo('admin'), createCar);
+router
+  .route('/')
+  .get(carController.getAllCar)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin'),
+    carController.createCar
+  );
 router
   .route('/:id')
-  .get(getCar)
-  .delete(protect, restrictTo('admin'), deleteCar)
-  .patch(protect, restrictTo('admin'), updateCar);
+  .get(carController.getCar)
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin'),
+    carController.deleteCar
+  )
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin'),
+    carController.updateCar
+  );
 
 module.exports = router;

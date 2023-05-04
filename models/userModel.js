@@ -83,6 +83,12 @@ const userSchema = new mongoose.Schema({
   photo: {
     type: String,
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  isEmailVerifiedAt: Date,
   lastPasswordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,

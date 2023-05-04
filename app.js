@@ -11,6 +11,7 @@ const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 const userRouter = require('./routes/userRouter');
 const carRouter = require('./routes/carRouter');
+const authRouter = require('./routes/authRouter')
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use(
   })
 );
 
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/car', carRouter);
 
