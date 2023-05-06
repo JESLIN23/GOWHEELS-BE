@@ -1,20 +1,32 @@
 const express = require('express');
 const router = express.Router();
 
-const authController = require('../controllers/authController');
-const userController = require('../controllers/userController');
+const {
+  login,
+  signup,
+  logout,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  updatePassword,
+  verifyPhone,
+  sendEmailVerification,
+  sendVerificationOTP,
+} = require('../controllers/authController');
+const { protect } = require('../middleware/protectRoutes');
+const { handleRefreshToken } = require('../controllers/refreshTokenController');
 
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
-router.post('/logout', authController.protect, authController.handleLogout);
-router.post('/verify-email', authController.verifyEmail)
+router.post('/signup', signup);
+router.post('/login', login);
+router.post('/logout', protect, logout);
+router.get('/refresh', handleRefreshToken);
+router.post('/verify-email', verifyEmail);
+router.post('/verify-phone', verifyPhone);
+router.post('/phone-verification-otp', protect, sendVerificationOTP);
+router.post('/email-verification', protect, sendEmailVerification);
 
-router.post('/forgetPassword', authController.forgotPassword);
-router.patch('/resetPassword/:token', authController.resetPassword);
-router.patch(
-  '/updatePassword',
-  authController.protect,
-  authController.updatePassword
-);
+router.post('/forgetPassword', forgotPassword);
+router.patch('/resetPassword/:token', resetPassword);
+router.patch('/updatePassword', protect, updatePassword);
 
 module.exports = router;

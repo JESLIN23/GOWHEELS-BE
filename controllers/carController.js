@@ -1,8 +1,16 @@
 const Cars = require('../models/carModel');
 const Factory = require('../controllers/handlerFactory');
 
-exports.getAllCar = Factory.getAll(Cars);
-exports.getCar = Factory.getOne(Cars);
-exports.createCar = Factory.createOne(Cars);
-exports.updateCar = Factory.updateOne(Cars);
-exports.deleteCar = Factory.deleteOne(Cars);
+const getAllCar = Factory.getAll(Cars);
+const getCar = Factory.getOne(Cars);
+const createCar = Factory.createOne(Cars);
+const updateCar = Factory.updateOne(Cars);
+const deleteCar = Factory.deleteOne(Cars);
+
+module.exports = {
+  getAllCar,
+  getCar,
+  createCar,
+  updateCar,
+  deleteCar,
+};

@@ -1,29 +1,20 @@
 const express = require('express');
 const router = express.Router();
 
-const authController = require('../controllers/authController');
-const carController = require('../controllers/carController');
+const { protect, restrictTo } = require('../middleware/protectRoutes');
+const {
+  getAllCar,
+  getCar,
+  createCar,
+  deleteCar,
+  updateCar,
+} = require('../controllers/carController');
 
-router
-  .route('/')
-  .get(carController.getAllCar)
-  .post(
-    authController.protect,
-    authController.restrictTo('admin'),
-    carController.createCar
-  );
+router.route('/').get(getAllCar).post(protect, restrictTo('admin'), createCar);
 router
   .route('/:id')
-  .get(carController.getCar)
-  .delete(
-    authController.protect,
-    authController.restrictTo('admin'),
-    carController.deleteCar
-  )
-  .patch(
-    authController.protect,
-    authController.restrictTo('admin'),
-    carController.updateCar
-  );
+  .get(getCar)
+  .delete(protect, restrictTo('admin'), deleteCar)
+  .patch(protect, restrictTo('admin'), updateCar);
 
 module.exports = router;

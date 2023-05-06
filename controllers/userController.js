@@ -11,13 +11,13 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUser = Factory.getAll(User);
-exports.getUser = Factory.getOne(User);
-exports.createUser = Factory.createOne(User);
-exports.updateUser = Factory.updateOne(User);
-exports.deleteUser = Factory.deleteOne(User);
+const getAllUser = Factory.getAll(User);
+const getUser = Factory.getOne(User);
+const createUser = Factory.createOne(User);
+const updateUser = Factory.updateOne(User);
+const deleteUser = Factory.deleteOne(User);
 
-exports.updateMe = catchAsync(async (req, res, next) => {
+const updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
     return next(
       new AppError(
@@ -50,7 +50,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteMe = catchAsync(async (req, res, next) => {
+const deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
   res.status(204).json({
@@ -59,11 +59,22 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deactivated = catchAsync(async (req, res, next) => {
-  const deactivatedUsers = await User.find({ isActive: false })
+const deactivated = catchAsync(async (req, res, next) => {
+  const deactivatedUsers = await User.find({ isActive: false });
 
   res.status(200).json({
     status: 'success',
-    data: deactivatedUsers
-  })
-})
+    data: deactivatedUsers,
+  });
+});
+
+module.exports = {
+  getAllUser,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateMe,
+  deleteMe,
+  deactivated,
+};

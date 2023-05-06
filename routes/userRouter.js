@@ -1,21 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-const authController = require('../controllers/authController');
-const userController = require('../controllers/userController');
+const {
+  getAllUser,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateMe,
+  deleteMe,
+  deactivated,
+} = require('../controllers/userController');
+const { protect } = require('../middleware/protectRoutes');
 
-router.patch('/updateMe', authController.protect, userController.updateMe);
-router.delete('/deleteMe', authController.protect, userController.deleteMe);
-router.get('/deactivated',authController.protect, userController.deactivated)
+router.patch('/updateMe', protect, updateMe);
+router.delete('/deleteMe', protect, deleteMe);
+router.get('/deactivated', protect, deactivated);
 
-router
-  .route('/')
-  .get(userController.getAllUser)
-  .post(userController.createUser);
-router
-  .route('/:id')
-  .get(userController.getUser)
-  .delete(userController.deleteUser)
-  .patch(userController.updateUser);
+router.route('/').get(getAllUser).post(createUser);
+router.route('/:id').get(getUser).delete(deleteUser).patch(updateUser);
 
 module.exports = router;

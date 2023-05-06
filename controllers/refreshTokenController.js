@@ -2,6 +2,7 @@ const AppError = require('../utils/appError');
 const Token = require('../models/tokenModel');
 
 const jwt = require('jsonwebtoken');
+const { sendJWTToken } = require('../utils/jwt');
 
 const handleRefreshToken = async (req, res, next) => {
   const cookies = req.cookies;
@@ -48,33 +49,35 @@ const handleRefreshToken = async (req, res, next) => {
       }
 
       // refresh token was still valid
-      const accessToken = jwt.sign(
-        { id: foundToken.user },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN }
-      );
 
-      const newRefreshToken = jwt.sign(
-        { id: foundToken.user },
-        process.env.REFRESH_TOKEN_SECRET,
-        { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN }
-      );
+      sendJWTToken(res, foundToken, newRefreshTokenArray)
+      // const accessToken = jwt.sign(
+      //   { id: foundToken.user },
+      //   process.env.ACCESS_TOKEN_SECRET,
+      //   { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN }
+      // );
 
-      foundToken.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-      await foundToken.save();
+      // const newRefreshToken = jwt.sign(
+      //   { id: foundToken.user },
+      //   process.env.REFRESH_TOKEN_SECRET,
+      //   { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN }
+      // );
 
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'None',
-        signed: true,
-        secure: process.env.NODE_ENV === 'production',
-        expires: new Date(Date.now() + process.env.JWT_COOKIES_EXPIRES_IN),
-      });
+      // foundToken.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+      // await foundToken.save();
 
-      res.status(200).json({
-        status: 'success',
-        accessToken,
-      });
+      // res.cookie('refreshToken', refreshToken, {
+      //   httpOnly: true,
+      //   sameSite: 'None',
+      //   signed: true,
+      //   secure: process.env.NODE_ENV === 'production',
+      //   expires: new Date(Date.now() + process.env.JWT_COOKIES_EXPIRES_IN),
+      // });
+
+      // res.status(200).json({
+      //   status: 'success',
+      //   accessToken,
+      // });
     }
   );
 };

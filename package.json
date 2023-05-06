@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@vonage/server-sdk": "^3.4.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
@@ -14,6 +15,7 @@
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.1",
     "nodemon": "^2.0.21",
+    "otp-generator": "^4.0.1",
     "rand-token": "^1.0.1",
     "validator": "^13.9.0",
     "xss-clean": "^0.1.1"
