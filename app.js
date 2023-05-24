@@ -6,15 +6,23 @@ const xss = require('xss-clean');
 const helmet = require('helmet');
 const mongan = require('morgan');
 const hpp = require('hpp');
+const cros = require('cors');
 
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 const userRouter = require('./routes/userRouter');
 const carRouter = require('./routes/carRouter');
-const authRouter = require('./routes/authRouter')
+const authRouter = require('./routes/authRouter');
 
 const app = express();
 
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true, 
+  optionSuccessStatus: 200,
+};
+
+app.use(cros(corsOptions));
 app.use(helmet());
 
 if (process.env.NODE_ENV === 'development') {

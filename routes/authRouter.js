@@ -18,7 +18,7 @@ const { handleRefreshToken } = require('../controllers/refreshTokenController');
 
 router.post('/signup', signup);
 router.post('/login', login);
-router.post('/logout', protect, logout);
+router.delete('/logout', protect, logout);
 router.get('/refresh', handleRefreshToken);
 router.post('/verify-email', verifyEmail);
 router.post('/verify-phone', verifyPhone);

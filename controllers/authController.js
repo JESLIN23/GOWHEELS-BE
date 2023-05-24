@@ -7,11 +7,10 @@ const OTP = require('../models/otpModel');
 const catchAsync = require('../utils/catchAsync');
 const sendEmail = require('../utils/sendEmail');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
-const sendNumberVerificationOTP = require('../utils/sendNumberVerificationOTP')
-const { sendJWTToken } = require('../utils/jwt');
+const sendNumberVerificationOTP = require('../utils/sendNumberVerificationOTP');
+const { sendJWTToken, createJWT } = require('../utils/jwt');
 
 const signup = catchAsync(async (req, res, next) => {
-
   const newUser = await User.create({
     firstName: req.body.firstName,
     secondName: req.body.secondName,
@@ -25,12 +24,12 @@ const signup = catchAsync(async (req, res, next) => {
   });
 
   const accessTokenJWT = createJWT(
-    { payload: { id: newUser._id, role: newUser.role } },
+    { id: newUser._id, role: newUser.role },
     process.env.ACCESS_TOKEN_SECRET,
     process.env.ACCESS_TOKEN_EXPIRES_IN
   );
   const refreshTokenJWT = createJWT(
-    { payload: { id: newUser._id } },
+    { id: newUser._id },
     process.env.REFRESH_TOKEN_SECRET,
     process.env.REFRESH_TOKEN_EXPIRES_IN
   );
@@ -40,7 +39,6 @@ const signup = catchAsync(async (req, res, next) => {
   res.cookie('refreshToken', refreshTokenJWT, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    signed: true,
     sameSite: 'None',
     expires: new Date(
       Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIES_EXPIRES_IN
@@ -50,6 +48,9 @@ const signup = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: 'success',
     accessToken: accessTokenJWT,
+    data: {
+      user: newUser
+    },
     message: 'Account created',
   });
 });
@@ -64,16 +65,15 @@ const sendVerificationOTP = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Verification OTP send to your phone number'
-  })
-})
+    message: 'Verification OTP send to your phone number',
+  });
+});
 
 const sendEmailVerification = catchAsync(async (req, res, next) => {
-
   const user = req.user;
   const emailVerificationToken = crypto.randomBytes(40).toString('hex');
 
-  const emailUser = await User.findById(user._id)
+  const emailUser = await User.findById(user._id);
 
   emailUser.emailVerificationToken = emailVerificationToken;
   await emailUser.save();
@@ -87,9 +87,9 @@ const sendEmailVerification = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Verification message send to your email'
-  })
-})
+    message: 'Verification message send to your email',
+  });
+});
 
 const verifyPhone = catchAsync(async (req, res, next) => {
   const otp = req.body.otp;
@@ -140,7 +140,7 @@ const verifyEmail = catchAsync(async (req, res, next) => {
 });
 
 const login = catchAsync(async (req, res, next) => {
-  const cookies = req.cookies;
+  const cookies = req?.cookies;
   const { email, password } = req.body;
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
@@ -152,15 +152,11 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  if (!isEmailVerified) {
-    return next(new AppError('Please verify your email', 401));
-  }
-
   const foundToken = await Token.findOne({ user: user._id });
 
-  const newRefreshTokenArray = !cookies?.refreshToken
+  let newRefreshTokenArray = !cookies?.refreshToken
     ? foundToken.refreshToken
-    : foundToken.refreshToken.filter((rt) => rt !== cookies.refreshToken);
+    : foundToken.refreshToken.filter((rt) => rt !== cookies?.refreshToken);
 
   sendJWTToken(res, foundToken, newRefreshTokenArray);
 });
@@ -265,21 +261,21 @@ const updatePassword = catchAsync(async (req, res, next) => {
 });
 
 const logout = catchAsync(async (req, res, next) => {
-  const cookies = req.cookies;
-  if (!cookies?.jwt) {
-    return next(new AppError('Please login again', 204));
+  const cookies = req?.cookies;
+  
+  if (!cookies?.refreshToken) {
+    return next(new AppError('Please login again', 401));
   }
-  const refreshToken = cookies.jwt;
+  const refreshToken = cookies.refreshToken;
 
   const foundToken = await Token.findOne({ refreshToken }).exec();
-
   if (!foundToken) {
     res.clearCookie('refreshToken', {
       httpOnly: true,
       sameSite: 'None',
       secure: process.env.NODE_ENV === 'production',
     });
-    res.status(204).json({
+    res.status(200).json({
       status: 'success',
       message: 'Logout successfully',
     });
@@ -297,8 +293,7 @@ const logout = catchAsync(async (req, res, next) => {
     sameSite: 'None',
     secure: process.env.NODE_ENV === 'production',
   });
-
-  res.status(204).json({
+  res.status(200).json({
     status: 'success',
     message: 'Logout successfully',
   });
@@ -314,5 +309,5 @@ module.exports = {
   forgotPassword,
   verifyPhone,
   sendVerificationOTP,
-  sendEmailVerification
+  sendEmailVerification,
 };
