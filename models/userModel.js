@@ -83,6 +83,16 @@ const userSchema = new mongoose.Schema({
   photo: {
     type: String,
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  isEmailVerifiedAt: Date,
   lastPasswordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
@@ -140,4 +150,6 @@ userSchema.methods.createPasswordResetToken = function () {
 
 const User = mongoose.model('User', userSchema);
 
+
 module.exports = User;
+

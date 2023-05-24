@@ -1,44 +1,14 @@
-const jwt = require('jsonwebtoken');
-const { promisify } = require('util');
 const crypto = require('crypto');
 
-const User = require('../models/userModal');
+const Token = require('../models/tokenModel');
+const User = require('../models/userModel');
 const AppError = require('../utils/appError');
+const OTP = require('../models/otpModel');
 const catchAsync = require('../utils/catchAsync');
-const sendEmail = require('../utils/email');
-
-const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-};
-
-const createSendJWTToken = (user, statusCode, res) => {
-  const token = signToken(user.id);
-
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIES_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-  };
-
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
-
-  res.cookie('jwt', token, cookieOptions);
-
-  user.password = undefined;
-
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: {
-      user,
-    },
-  });
-};
+const sendEmail = require('../utils/sendEmail');
+const sendVerificationEmail = require('../utils/sendVerificationEmail');
+const sendNumberVerificationOTP = require('../utils/sendNumberVerificationOTP');
+const { sendJWTToken, createJWT } = require('../utils/jwt');
 
 const signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
@@ -53,13 +23,127 @@ const signup = catchAsync(async (req, res, next) => {
     photo: req.body.photo,
   });
 
-  createSendJWTToken(newUser, 201, res);
+  const accessTokenJWT = createJWT(
+    { id: newUser._id, role: newUser.role },
+    process.env.ACCESS_TOKEN_SECRET,
+    process.env.ACCESS_TOKEN_EXPIRES_IN
+  );
+  const refreshTokenJWT = createJWT(
+    { id: newUser._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    process.env.REFRESH_TOKEN_EXPIRES_IN
+  );
+
+  await Token.create({ refreshToken: refreshTokenJWT, user: newUser._id });
+
+  res.cookie('refreshToken', refreshTokenJWT, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'None',
+    expires: new Date(
+      Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIES_EXPIRES_IN
+    ),
+  });
+
+  res.status(201).json({
+    status: 'success',
+    accessToken: accessTokenJWT,
+    data: {
+      user: newUser
+    },
+    message: 'Account created',
+  });
+});
+
+const sendVerificationOTP = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  await sendNumberVerificationOTP({
+    phone: user.phone,
+    user: user._id,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Verification OTP send to your phone number',
+  });
+});
+
+const sendEmailVerification = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const emailVerificationToken = crypto.randomBytes(40).toString('hex');
+
+  const emailUser = await User.findById(user._id);
+
+  emailUser.emailVerificationToken = emailVerificationToken;
+  await emailUser.save();
+
+  await sendVerificationEmail({
+    name: user.name,
+    email: user.email,
+    emailVerificationToken,
+    weburl: process.env.WEBURL,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Verification message send to your email',
+  });
+});
+
+const verifyPhone = catchAsync(async (req, res, next) => {
+  const otp = req.body.otp;
+  if (!otp) return next(new AppError('Please provide OTP', 400));
+
+  const otpUser = await OTP.findOne({ user: req.user._id });
+  if (!otpUser) {
+    return next(new AppError('OTP expired! Please try again.', 404));
+  }
+
+  if (otpUser.otp !== otp) {
+    return next(new AppError('OTP is incorrect!', 400));
+  }
+
+  const user = await User.findById(otpUser.user);
+  user.isPhoneVerified = true;
+
+  await user.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Phone number verified',
+  });
+});
+
+const verifyEmail = catchAsync(async (req, res, next) => {
+  const { emailVerificationToken, email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return next(new AppError('Verification faild', 401));
+  }
+
+  if (user.emailVerificationToken !== emailVerificationToken) {
+    return next(new AppError('Verification faild', 401));
+  }
+
+  user.isEmailVerified = true;
+  user.isEmailVerifiedAt = Date.now();
+  user.emailVerificationToken = '';
+
+  await user.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'email is verified',
+  });
 });
 
 const login = catchAsync(async (req, res, next) => {
+  const cookies = req?.cookies;
   const { email, password } = req.body;
   if (!email || !password) {
-    return next(new AppError('Please provide valid email and password', 400));
+    return next(new AppError('Please provide email and password', 400));
   }
 
   const user = await User.findOne({ email }).select('+password');
@@ -68,46 +152,14 @@ const login = catchAsync(async (req, res, next) => {
     return next(new AppError('Incorrect email or password', 401));
   }
 
-  createSendJWTToken(user, 200, res);
+  const foundToken = await Token.findOne({ user: user._id });
+
+  let newRefreshTokenArray = !cookies?.refreshToken
+    ? foundToken.refreshToken
+    : foundToken.refreshToken.filter((rt) => rt !== cookies?.refreshToken);
+
+  sendJWTToken(res, foundToken, newRefreshTokenArray);
 });
-
-const protect = catchAsync(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-  if (!token) {
-    return next(new AppError('You are not logged in! Please log in', 401));
-  }
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
-  const currentUser = await User.findById(decoded.id);
-
-  if (!currentUser) return next(new AppError('The user no longer exist', 401));
-
-  if (currentUser.changedPasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('Please log in again after changing passwords', 401)
-    );
-  }
-
-  req.user = currentUser;
-  next();
-});
-
-const restrictTo = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new AppError('You do not have permission to perform this action', 403)
-      );
-    }
-    next();
-  };
-};
 
 const forgotPassword = catchAsync(async (req, res, next) => {
   //1)get user based on POSTed email
@@ -131,7 +183,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   )}/api/v1/user/resetPassword/${resetToken}`;
 
   const message = `Forgot your password? Submit a request with new password
-   and passWord confirm to ${resetURL}. \n If no, then ignore this email.`;
+   and password confirm to ${resetURL}. \n If no, then ignore this email.`;
 
   try {
     await sendEmail({
@@ -183,7 +235,10 @@ const resetPassword = catchAsync(async (req, res, next) => {
 
   await user.save();
 
-  createSendJWTToken(user, 200, res);
+  res.status(200).json({
+    status: 'success',
+    message: 'Please login again!',
+  });
 });
 
 const updatePassword = catchAsync(async (req, res, next) => {
@@ -191,7 +246,7 @@ const updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findById(req.user.id).select('+password');
 
   if (!(await user.correctPassword(currentPassword, user.password))) {
-    return next(new AppError('Your current password id wrong!', 401));
+    return next(new AppError('Your current password is wrong!', 401));
   }
 
   user.password = password;
@@ -199,15 +254,60 @@ const updatePassword = catchAsync(async (req, res, next) => {
 
   await user.save();
 
-  createSendJWTToken(user, 200, res);
+  res.status(200).json({
+    status: 'success',
+    message: 'Please login again!',
+  });
+});
+
+const logout = catchAsync(async (req, res, next) => {
+  const cookies = req?.cookies;
+  
+  if (!cookies?.refreshToken) {
+    return next(new AppError('Please login again', 401));
+  }
+  const refreshToken = cookies.refreshToken;
+
+  const foundToken = await Token.findOne({ refreshToken }).exec();
+  if (!foundToken) {
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      sameSite: 'None',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    res.status(200).json({
+      status: 'success',
+      message: 'Logout successfully',
+    });
+  }
+
+  //delete RF in db
+
+  foundToken.refreshToken = foundToken.refreshToken.filter(
+    (rt) => rt !== refreshToken
+  );
+  await foundToken.save();
+
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    sameSite: 'None',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  res.status(200).json({
+    status: 'success',
+    message: 'Logout successfully',
+  });
 });
 
 module.exports = {
   signup,
+  verifyEmail,
   login,
-  protect,
-  restrictTo,
-  forgotPassword,
-  resetPassword,
+  logout,
   updatePassword,
+  resetPassword,
+  forgotPassword,
+  verifyPhone,
+  sendVerificationOTP,
+  sendEmailVerification,
 };

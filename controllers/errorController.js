@@ -7,7 +7,7 @@ const handleCastErrorDB = (err) => {
 
 const handleDuplicateFieldsDB = (err) => {
   const value = Object.entries(err.keyValue)[0][0];
-  const message = `This '${value}' is already using. Please try another ${value}.`;
+  const message = `${value}' is already exist.`;
   return new AppError(message, 400);
 };
 
@@ -21,7 +21,7 @@ const handleJWTError = () =>
   new AppError('Invalid token. Please login again.', 401);
 
 const handleJWTExpired = () =>
-  new AppError('Your token has expired! Please login again.');
+  new AppError('Your token has expired! Please login again.', 403, "ACCESS_TOKEN_EXPIRED");
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -36,7 +36,8 @@ const sendErrorProd = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
-      message: err.message || `Something went wrong!`,
+      message: err.message,
+      code: err.code
     });
   } else {
     console.error(`ERROE💥`, err);
@@ -57,7 +58,7 @@ module.exports = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
+    let error = { ...err, message: err?.message };
     if (err.name === 'CastError') error = handleCastErrorDB(error);
     if (err.code === 11000) error = handleDuplicateFieldsDB(error);
     if (err.name === 'ValidationError') error = handleValidationErrorDB(error);

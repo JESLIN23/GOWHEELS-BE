@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const { protect, restrictTo } = require('../controllers/authController');
+const { protect, restrictTo } = require('../middleware/protectRoutes');
 const {
-  getCar,
   getAllCar,
-  updateCar,
+  getCar,
   createCar,
   deleteCar,
+  updateCar,
 } = require('../controllers/carController');
 
 router.route('/').get(getAllCar).post(protect, restrictTo('admin'), createCar);
