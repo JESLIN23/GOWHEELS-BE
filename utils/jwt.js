@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-// const Token = require('../models/tokenModel');
 const User = require('../models/userModel');
 
 const createJWT = (payload, secret, expiresIn) => {
@@ -23,27 +22,16 @@ const sendJWTToken = async (res, foundToken, newRefreshTokenArray) => {
     process.env.REFRESH_TOKEN_EXPIRES_IN
   );
 
-  // const tokenUser = await Token.findById({ user: foundToken.user });
   foundToken.refreshToken = [...newRefreshTokenArray, refreshTokenJWT];
   await foundToken.save();
-
-  res.cookie('refreshToken', refreshTokenJWT, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    domain: ".localhost",
-    path: "/",
-    expires: new Date(
-      Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIES_EXPIRES_IN
-    ),
-  });
 
   user.password = undefined;
 
   res.status(200).json({
     status: 'success',
     accessToken: accessTokenJWT,
-    role: user.role
+    refreshToken: refreshTokenJWT,
+    user,
   });
 };
 

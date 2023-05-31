@@ -78,7 +78,6 @@ const userSchema = new mongoose.Schema({
   active: {
     type: Boolean,
     default: true,
-    select: false,
   },
   photo: {
     type: String,
@@ -113,10 +112,11 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-userSchema.pre(/^find/, function (next) {
-    this.find({ active: { $ne: false }})
-    next()
-})
+// userSchema.post(/^find/, function(next) {
+//   this.find({active: { $ne: false}})
+
+//   next()
+// })
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,

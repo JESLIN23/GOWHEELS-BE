@@ -23,23 +23,31 @@ const protect = catchAsync(async (req, res, next) => {
       )
     );
   }
-  const decoded = await promisify(jwt.verify)(
+  // const decoded = await promisify(jwt.verify)(
+  //   token,
+  //   process.env.ACCESS_TOKEN_SECRET
+  // );
+  jwt.verify(
     token,
-    process.env.ACCESS_TOKEN_SECRET
+    process.env.ACCESS_TOKEN_SECRET,
+    async (err, decoded) => {
+      if (err) return next(new AppError('Please login again!', 403));
+
+      const currentUser = await User.findById(decoded.id);
+
+      if (!currentUser)
+        return next(new AppError('The user no longer exist', 401));
+
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next(
+          new AppError('Please log in again after changing passwords', 401)
+        );
+      }
+
+      req.user = currentUser;
+      next();
+    }
   );
-
-  const currentUser = await User.findById(decoded.id);
-
-  if (!currentUser) return next(new AppError('The user no longer exist', 401));
-
-  if (currentUser.changedPasswordAfter(decoded.iat)) {
-    return next(
-      new AppError('Please log in again after changing passwords', 401)
-    );
-  }
-
-  req.user = currentUser;
-  next();
 });
 
 const restrictTo = (...roles) => {
@@ -61,3 +69,4 @@ module.exports = {
   restrictTo,
   protect,
 };
+
