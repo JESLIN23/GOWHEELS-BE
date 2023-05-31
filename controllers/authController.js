@@ -36,21 +36,13 @@ const signup = catchAsync(async (req, res, next) => {
 
   await Token.create({ refreshToken: refreshTokenJWT, user: newUser._id });
 
-  res.cookie('refreshToken', refreshTokenJWT, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'None',
-    expires: new Date(
-      Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIES_EXPIRES_IN
-    ),
-  });
-
+  newUser.password = undefined;
+  
   res.status(201).json({
     status: 'success',
     accessToken: accessTokenJWT,
-    data: {
-      user: newUser
-    },
+    refreshToken: refreshTokenJWT,
+    user: newUser,
     message: 'Account created',
   });
 });
@@ -92,7 +84,7 @@ const sendEmailVerification = catchAsync(async (req, res, next) => {
 });
 
 const verifyPhone = catchAsync(async (req, res, next) => {
-  const otp = req.body.otp;
+  const otp = req?.body?.otp;
   if (!otp) return next(new AppError('Please provide OTP', 400));
 
   const otpUser = await OTP.findOne({ user: req.user._id });
@@ -140,8 +132,7 @@ const verifyEmail = catchAsync(async (req, res, next) => {
 });
 
 const login = catchAsync(async (req, res, next) => {
-  const cookies = req?.cookies;
-  const { email, password } = req.body;
+  const { email, password, refreshToken } = req.body;
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
@@ -154,9 +145,9 @@ const login = catchAsync(async (req, res, next) => {
 
   const foundToken = await Token.findOne({ user: user._id });
 
-  let newRefreshTokenArray = !cookies?.refreshToken
+  let newRefreshTokenArray = !refreshToken
     ? foundToken.refreshToken
-    : foundToken.refreshToken.filter((rt) => rt !== cookies?.refreshToken);
+    : foundToken.refreshToken.filter((rt) => rt !== refreshToken);
 
   sendJWTToken(res, foundToken, newRefreshTokenArray);
 });
@@ -261,43 +252,43 @@ const updatePassword = catchAsync(async (req, res, next) => {
 });
 
 const logout = catchAsync(async (req, res, next) => {
-  const cookies = req?.cookies;
+  const rt = req?.body?.refreshToken;
   
-  if (!cookies?.refreshToken) {
-    return next(new AppError('Please login again', 401));
+  if (!rt) {
+    return next(new AppError('Please login again, hihihi', 401));
   }
-  const refreshToken = cookies.refreshToken;
+  const refreshToken = rt;
 
   const foundToken = await Token.findOne({ refreshToken }).exec();
   if (!foundToken) {
-    res.clearCookie('refreshToken', {
-      httpOnly: true,
-      sameSite: 'None',
-      secure: process.env.NODE_ENV === 'production',
-    });
     res.status(200).json({
       status: 'success',
       message: 'Logout successfully',
     });
   }
 
-  //delete RF in db
+  //delete RT in db
 
   foundToken.refreshToken = foundToken.refreshToken.filter(
     (rt) => rt !== refreshToken
   );
   await foundToken.save();
 
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    sameSite: 'None',
-    secure: process.env.NODE_ENV === 'production',
-  });
   res.status(200).json({
     status: 'success',
     message: 'Logout successfully',
   });
 });
+
+const userProfile = catchAsync(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    data: {
+      user: req.user,
+    },
+  });
+});
+
 
 module.exports = {
   signup,
@@ -310,4 +301,5 @@ module.exports = {
   verifyPhone,
   sendVerificationOTP,
   sendEmailVerification,
+  userProfile
 };

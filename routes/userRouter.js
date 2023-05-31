@@ -8,16 +8,17 @@ const {
   updateUser,
   deleteUser,
   updateMe,
-  deleteMe,
-  deactivated,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/protectRoutes');
 
 router.patch('/updateMe', protect, updateMe);
-router.delete('/deleteMe', protect, deleteMe);
-router.get('/deactivated', protect, deactivated);
+// router.patch('/deactive', protect, deactive);
 
-router.route('/').get(getAllUser).post(createUser);
-router.route('/:id').get(getUser).delete(deleteUser).patch(updateUser);
+router.route('/').get(protect, getAllUser).post(createUser);
+router
+  .route('/:id')
+  .get(protect, getUser)
+  .delete(protect, deleteUser)
+  .patch(protect, updateUser);
 
 module.exports = router;

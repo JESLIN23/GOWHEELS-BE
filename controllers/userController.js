@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const Token = require('../models/tokenModel');
 const Factory = require('../controllers/handlerFactory');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
@@ -11,7 +12,7 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-const getAllUser = Factory.getAll(User);
+const getAllUser = Factory.getAll(User, { role: { $ne: 'admin' } });
 const getUser = Factory.getOne(User);
 const createUser = Factory.createOne(User);
 const updateUser = Factory.updateOne(User);
@@ -50,23 +51,25 @@ const updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
-const deleteMe = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+// const deactive = catchAsync(async (req, res, next) => {
+//   console.log(req.body.id);
+//   const id = req?.body?.id;
+//   const user = await User.findByIdAndUpdate(id, { active: false });
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+//   if (!user) {
+//     return next(new AppError('User not found with this id', 404));
+//   }
 
-const deactivated = catchAsync(async (req, res, next) => {
-  const deactivatedUsers = await User.find({ isActive: false });
+//   if (user?.active === false) {
+//     return next(new AppError('User with this id already deactive', 400))
+//   }
 
-  res.status(200).json({
-    status: 'success',
-    data: deactivatedUsers,
-  });
-});
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//     message: 'User deactivated',
+//   });
+// });
 
 module.exports = {
   getAllUser,
@@ -75,6 +78,4 @@ module.exports = {
   updateUser,
   deleteUser,
   updateMe,
-  deleteMe,
-  deactivated,
 };

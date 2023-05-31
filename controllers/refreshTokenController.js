@@ -6,16 +6,12 @@ const jwt = require('jsonwebtoken');
 const { createJWT } = require('../utils/jwt');
 
 const handleRefreshToken = async (req, res, next) => {
-  const cookies = req?.cookies;
-  if (!cookies?.refreshToken) {
+  
+  const rf = req?.body?.refreshToken;
+  if (!rf) {
     return next(new AppError('Unauthorized', 401));
   }
-  const refreshToken = cookies.refreshToken;
-  res.clearCookie('refreshToken', {
-    httpOnly: true,
-    sameSite: 'None',
-    secure: process.env.NODE_ENV === 'production',
-  });
+  const refreshToken = rf;
 
   const foundToken = await Token.findOne({ refreshToken }).exec();
   if (!foundToken) {
@@ -33,7 +29,6 @@ const handleRefreshToken = async (req, res, next) => {
   }
 
   const user = await User.findById(foundToken.user)
-
   const newRefreshTokenArray = foundToken.refreshToken.filter(
     (rt) => rt !== refreshToken
   );
@@ -46,7 +41,8 @@ const handleRefreshToken = async (req, res, next) => {
         foundToken.refreshToken = [...newRefreshTokenArray];
         await foundToken.save();
       }
-      if (err || foundToken.user !== decoded.id) {
+
+      if (err || (foundToken.user).toString(16) !== decoded.id) {
         return next(new AppError('Please login again!', 403));
       }
 
@@ -67,17 +63,12 @@ const handleRefreshToken = async (req, res, next) => {
       foundToken.refreshToken = [...newRefreshTokenArray, newRefreshToken];
       await foundToken.save();
 
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        sameSite: 'None',
-        secure: process.env.NODE_ENV === 'production',
-        expires: new Date(Date.now() + process.env.JWT_COOKIES_EXPIRES_IN),
-      });
-
+      user.password = undefined;
       res.status(200).json({
         status: 'success',
         accessToken,
-        role: user.role
+        refreshToken: newRefreshToken,
+        user,
       });
     }
   );
