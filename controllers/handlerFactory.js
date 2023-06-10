@@ -73,7 +73,15 @@ exports.getAll = (Model, option) =>
       const data = doc.toObject();
       return { ...data, no: index + 1 };
     });
-    
+
+    document.forEach((doc) => {
+      if (doc.images.length) {
+        doc.images.forEach((img) => {
+          img.url = `${process.env.WEB_URL}/${img.url}`;
+        });
+      }
+    });
+
     res.status(200).json({
       status: 'success',
       results: document.length,
