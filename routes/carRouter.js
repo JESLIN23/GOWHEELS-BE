@@ -8,7 +8,12 @@ const {
   createCar,
   deleteCar,
   updateCar,
+  uploadCarImage,
 } = require('../controllers/carController');
+
+const { saveCarImg } = require('../middleware/upload')
+
+
 
 router.route('/').get(getAllCar).post(protect, restrictTo('admin'), createCar);
 router
@@ -17,4 +22,8 @@ router
   .delete(protect, restrictTo('admin'), deleteCar)
   .patch(protect, restrictTo('admin'), updateCar);
 
+router.patch('/:id/image', protect, restrictTo('admin'), saveCarImg, uploadCarImage);
+
 module.exports = router;
+
+

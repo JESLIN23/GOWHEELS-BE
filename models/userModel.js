@@ -95,6 +95,9 @@ const userSchema = new mongoose.Schema({
   lastPasswordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+},{
+  toJSON: { virtuals: true},
+  toObject: { virtuals: true}
 });
 
 userSchema.pre('save', async function (next) {
