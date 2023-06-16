@@ -6,7 +6,7 @@ const xss = require('xss-clean');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const hpp = require('hpp');
-const cros = require('cors');
+const cors = require('cors');
 const axios = require('axios');
 
 const globalErrorHandler = require('./controllers/errorController');
@@ -23,8 +23,13 @@ const corsOptions = {
   optionSuccessStatus: 200,
 };
 
-app.use(cros(corsOptions));
-app.use(helmet());
+app.use(cors(corsOptions));
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+  })
+);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -53,20 +58,6 @@ app.use(
     ],
   })
 );
-
-app.get('/image-proxy', async (req, res) => {
-  const imageUrl = req.query.url;
-
-  try {
-    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-    const contentType = response.headers['content-type'];
-
-    res.set('Content-Type', contentType);
-    res.send(response.data);
-  } catch (error) {
-    res.status(404).send('Image not found');
-  }
-});
 
 app.use('/uploads/images/car', express.static('uploads/images/car'));
 

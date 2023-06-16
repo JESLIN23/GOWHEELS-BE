@@ -6,7 +6,7 @@ const carSchema = new mongoose.Schema(
       type: String,
       required: [true, 'A car must have a name'],
       trim: true,
-      minLength: [3, 'A car name must have alteast 3 charactor'],
+      minLength: [2, 'A car name must have alteast 3 charactor'],
       maxLength: [30, 'A car name must have lesthan 30 charactor'],
     },
     transmission: {
@@ -14,21 +14,21 @@ const carSchema = new mongoose.Schema(
       required: [true, 'A car must have a transmission type'],
       trim: true,
       enum: {
-        values: ['Manual', 'Automatic'],
+        values: ['Manual', 'Automatic', 'Semi-automatic'],
         message: 'Transmission should be manual or automatic',
       },
     },
     seating_capacity: {
       type: Number,
       required: [true, 'Seating capicity is required'],
-      min: [4, 'Seating capacity must be 4 or above '],
-      max: [9, 'Seating capacity must be 9 or less'],
+      min: [2, 'Seating capacity must be 4 or above '],
+      max: [11, 'Seating capacity must be 9 or less'],
     },
     brand: {
       type: String,
       required: [true, 'Brand name is required'],
-      minLength: [3, 'Brand name must have alteast 3 charactor'],
-      maxLength: [20, 'Brand name must have lessthan 20 charactor'],
+      minLength: [2, 'Brand name must have alteast 3 charactor'],
+      maxLength: [30, 'Brand name must have lessthan 20 charactor'],
       trim: true,
     },
     fuel: {
@@ -45,14 +45,14 @@ const carSchema = new mongoose.Schema(
       required: [true, 'Segment type is required'],
       trim: true,
       enum: {
-        values: ['Hatchback', 'SUV', 'Sedan', 'MPV', 'Convertable', 'Wagon'],
+        values: ['Hatchback', 'SUV', 'Sedan', 'MUV', 'Convertable', 'Wagon'],
         message: 'Segment type is invalid',
       },
     },
-    city: {
+    city: [{
       type: String,
       required: [true, 'City is required'],
-    },
+    }],
     price: {
       type: Number,
       required: [true, 'Price is required'],
@@ -95,3 +95,4 @@ const carSchema = new mongoose.Schema(
 const Cars = mongoose.model('Cars', carSchema);
 
 module.exports = Cars;
+
