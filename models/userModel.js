@@ -79,7 +79,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  photo: {
+  avatar: {
     type: String,
   },
   isEmailVerified: {
