@@ -49,42 +49,31 @@ const carSchema = new mongoose.Schema(
         message: 'Segment type is invalid',
       },
     },
-    city: [{
-      type: String,
-      required: [true, 'City is required'],
-    }],
+    city: [
+      {
+        type: String,
+        required: [true, 'City is required'],
+      },
+    ],
     price: {
       type: Number,
       required: [true, 'Price is required'],
     },
     registerNo: {
       type: String,
-      required: [true, 'Please enter the register no']
+      required: [true, 'Please enter the register number'],
     },
     images: [
       {
-        id: {
-          type: String,
-        },
-        url: {
-          type: String,
-        },
-      }, 
+        id: String,
+        url: String,
+      },
     ],
     active: {
       type: Boolean,
       default: true,
     },
-    booked: {
-      type: Boolean,
-      default: false,
-    },
-    BookedAt: {
-      type: Date,
-    },
-    BookedTo: {
-      type: Date,
-    },
+    active_bookings: [],
   },
   {
     toJSON: { virtuals: true },
@@ -95,4 +84,3 @@ const carSchema = new mongoose.Schema(
 const Cars = mongoose.model('Cars', carSchema);
 
 module.exports = Cars;
-

@@ -99,7 +99,7 @@ const getAll = (Model, option) =>
       .sort()
       .limitFields()
       .pagination();
-
+      
     const values = await features.query;
     let document = values.map((doc, index) => {
       const data = doc.toObject();
