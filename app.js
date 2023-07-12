@@ -14,6 +14,7 @@ const AppError = require('./utils/appError');
 const userRouter = require('./routes/userRouter');
 const carRouter = require('./routes/carRouter');
 const authRouter = require('./routes/authRouter');
+const orderRouter = require('./routes/orderRouter')
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/uploads/images/car', express.static('uploads/images/car'));
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/car', carRouter);
+app.use('/api/v1/order', orderRouter)
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} from this server`, 404));
