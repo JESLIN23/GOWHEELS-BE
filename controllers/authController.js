@@ -152,6 +152,31 @@ const login = catchAsync(async (req, res, next) => {
   sendJWTToken(res, foundToken, newRefreshTokenArray);
 });
 
+const loginAdmin = catchAsync(async (req, res, next) => {
+  const { email, password, refreshToken } = req.body;
+  if (!email || !password) {
+    return next(new AppError('Please provide email and password', 400));
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError('Incorrect email or password', 401));
+  }
+
+  if (user?.role !== 'admin') {
+    return next(new AppError('Incorrect email or password', 401));
+  }
+
+  const foundToken = await Token.findOne({ user: user._id });
+
+  let newRefreshTokenArray = !refreshToken
+    ? foundToken.refreshToken
+    : foundToken.refreshToken.filter((rt) => rt !== refreshToken);
+
+  sendJWTToken(res, foundToken, newRefreshTokenArray);
+});
+
 const forgotPassword = catchAsync(async (req, res, next) => {
   //1)get user based on POSTed email
   const email = req.body.email;
@@ -301,5 +326,6 @@ module.exports = {
   verifyPhone,
   sendVerificationOTP,
   sendEmailVerification,
-  userProfile
+  userProfile,
+  loginAdmin
 };

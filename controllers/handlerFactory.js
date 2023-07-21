@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const path = require('path');
 const fs = require('fs');
+const User = require('../models/userModel');
 
 const createOne = (Model) =>
   catchAsync(async (req, res, next) => {
@@ -99,16 +100,24 @@ const getAll = (Model, option) =>
       .sort()
       .limitFields()
       .pagination();
-      
+
     const values = await features.query;
     let document = values.map((doc, index) => {
       const data = doc.toObject();
       return { ...data, no: index + 1 };
     });
 
+    let documentCount;
+    if (Model === User) {
+      const query = { active: req.query?.active }
+      documentCount = await Model.countDocuments(query);
+    } else {
+      documentCount = document.length;
+    }
+
     res.status(200).json({
       status: 'success',
-      results: document.length,
+      results: documentCount,
       data: {
         document,
       },

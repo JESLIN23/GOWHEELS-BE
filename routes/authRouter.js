@@ -12,13 +12,15 @@ const {
   verifyPhone,
   sendEmailVerification,
   sendVerificationOTP,
-  userProfile
+  userProfile,
+  loginAdmin
 } = require('../controllers/authController');
 const { protect } = require('../middleware/protectRoutes');
 const { handleRefreshToken } = require('../controllers/refreshTokenController');
 
 router.post('/signup', signup);
 router.post('/login', login);
+router.post('/login-admin', loginAdmin)
 router.delete('/logout', protect, logout);
 router.post('/refresh', handleRefreshToken);
 router.post('/verify-email', verifyEmail);
