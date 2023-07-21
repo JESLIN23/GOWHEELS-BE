@@ -7,9 +7,9 @@ const AppError = require('../utils/appError');
 const getAllOrder = catchAsync(async (req, res) => {
   const features = new APIFeatures(Order.find(), req.query)
     .search(['user_name', 'city', 'status', 'car_name'])
-    .filter();
-  console.log(features.query);
-  const document = await features.query.populate('car');
+    .filter()
+    .pagination();
+  const document = await features.query.populate('car').populate('user');
 
   res.status(200).json({
     status: 'success',
@@ -123,6 +123,93 @@ const cancelOrder = catchAsync(async (req, res) => {
   });
 });
 
+const OrderChart = catchAsync(async (req, res) => {
+  const year = parseInt(req?.query?.year);
+  const document = await Order.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [{ $year: '$pickup_date' }, year],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          city: '$city',
+          month: { $month: '$pickup_date' },
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id.city',
+        months: {
+          $push: {
+            month: '$_id.month',
+            count: '$count',
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        months: {
+          $arrayToObject: {
+            $map: {
+              input: [
+                { month: 1, name: 'January' },
+                { month: 2, name: 'February' },
+                { month: 3, name: 'March' },
+                { month: 4, name: 'April' },
+                { month: 5, name: 'May' },
+                { month: 6, name: 'June' },
+                { month: 7, name: 'July' },
+                { month: 8, name: 'August' },
+                { month: 9, name: 'September' },
+                { month: 10, name: 'October' },
+                { month: 11, name: 'November' },
+                { month: 12, name: 'December' },
+              ],
+              as: 'm',
+              in: {
+                k: '$$m.name',
+                v: {
+                  $let: {
+                    vars: {
+                      matchedMonth: {
+                        $filter: {
+                          input: '$months',
+                          as: 'month',
+                          cond: { $eq: ['$$month.month', '$$m.month'] },
+                        },
+                      },
+                    },
+                    in: {
+                      $cond: [
+                        { $gt: [{ $size: '$$matchedMonth' }, 0] },
+                        { $arrayElemAt: ['$$matchedMonth.count', 0] },
+                        0,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      document,
+    },
+  });
+});
+
 module.exports = {
   getAllOrder,
   getOrder,
@@ -130,4 +217,5 @@ module.exports = {
   createOrder,
   closeOrder,
   cancelOrder,
+  OrderChart,
 };
