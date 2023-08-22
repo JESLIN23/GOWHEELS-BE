@@ -5,9 +5,22 @@ class APIFeatures {
   }
 
   filter() {
-    const queryObj = { ...this.queryString };
+    let queryObj = { ...this.queryString };
     const excludedFields = ['sort', 'page', 'limit', 'fields', 'search'];
     excludedFields.forEach((el) => delete queryObj[el]);
+
+    for (const key in queryObj) {
+      if (queryObj[key].length === 0) {
+        delete queryObj[key];
+      }
+    }
+
+    for (const key in queryObj) {
+      if (queryObj[key].includes(',')) {
+        const values = queryObj[key].split(',');
+        queryObj[key] = { $in: values };
+      }
+    }
 
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (match) => `$${match}`);

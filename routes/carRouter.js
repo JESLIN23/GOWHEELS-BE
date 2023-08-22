@@ -9,13 +9,12 @@ const {
   deleteCar,
   updateCar,
   uploadCarImage,
+  getAvailableCars,
 } = require('../controllers/carController');
 const { saveCarImg } = require('../middleware/upload');
-const {
-  resizeUserImages,
-  resizeCarImages,
-} = require('../middleware/resizeImages');
+const { resizeCarImages } = require('../middleware/resizeImages');
 
+router.get('/available-cars', getAvailableCars);
 router.route('/').get(getAllCar).post(protect, restrictTo('admin'), createCar);
 router
   .route('/:id')

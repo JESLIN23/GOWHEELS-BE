@@ -37,7 +37,7 @@ const signup = catchAsync(async (req, res, next) => {
   await Token.create({ refreshToken: refreshTokenJWT, user: newUser._id });
 
   newUser.password = undefined;
-  
+
   res.status(201).json({
     status: 'success',
     accessToken: accessTokenJWT,
@@ -132,7 +132,7 @@ const verifyEmail = catchAsync(async (req, res, next) => {
 });
 
 const login = catchAsync(async (req, res, next) => {
-  const { email, password, refreshToken } = req.body;
+  const { email, password } = req.body;
   if (!email || !password) {
     return next(new AppError('Please provide email and password', 400));
   }
@@ -145,9 +145,9 @@ const login = catchAsync(async (req, res, next) => {
 
   const foundToken = await Token.findOne({ user: user._id });
 
-  let newRefreshTokenArray = !refreshToken
-    ? foundToken.refreshToken
-    : foundToken.refreshToken.filter((rt) => rt !== refreshToken);
+  let newRefreshTokenArray = !req.body.refreshToken
+    ? foundToken?.refreshToken
+    : foundToken?.refreshToken.filter((rt) => rt !== refreshToken);
 
   sendJWTToken(res, foundToken, newRefreshTokenArray);
 });
@@ -278,9 +278,9 @@ const updatePassword = catchAsync(async (req, res, next) => {
 
 const logout = catchAsync(async (req, res, next) => {
   const rt = req?.body?.refreshToken;
-  
+
   if (!rt) {
-    return next(new AppError('Please login again, hihihi', 401));
+    return next(new AppError('Please login again.', 401));
   }
   const refreshToken = rt;
 
@@ -314,7 +314,6 @@ const userProfile = catchAsync(async (req, res, next) => {
   });
 });
 
-
 module.exports = {
   signup,
   verifyEmail,
@@ -327,5 +326,5 @@ module.exports = {
   sendVerificationOTP,
   sendEmailVerification,
   userProfile,
-  loginAdmin
+  loginAdmin,
 };

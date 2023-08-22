@@ -3,6 +3,7 @@ const path = require('path');
 
 const multerStorageForUserImg = multer.memoryStorage()
 const multerStorageForCarImg = multer.memoryStorage()
+const multerStorageForLicenceImg = multer.memoryStorage()
 // const multerStorageForCarImg = multer.diskStorage({
 //   destination: function (req, file, cb) {
 //     cb(null, 'uploads/images/car/')
@@ -33,11 +34,18 @@ const uploadUserImg = multer({
   fileFilter: multerFilter,
   limits: imageSizeLimit
 });
+const uploadLicenceImg = multer({
+  storage: multerStorageForLicenceImg,
+  fileFilter: multerFilter,
+  limits: imageSizeLimit
+});
 
 const saveCarImg = uploadCarImg.single('file')
 const saveUserImg = uploadUserImg.single('avatar')
+const saveLicenceImg = uploadLicenceImg.single('licence')
 
 module.exports = {
     saveCarImg,
-    saveUserImg
+    saveUserImg,
+    saveLicenceImg
 };
