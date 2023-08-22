@@ -32,10 +32,7 @@ const updateMe = catchAsync(async (req, res, next) => {
     req.body,
     'firstName',
     'secondName',
-    'date_of_birth',
-    'photo',
     'phone',
-    'gender',
     'email'
   );
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
@@ -48,6 +45,69 @@ const updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+const uploadUserImage = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  const id = req.params.id;
+  const user = await User.findById(id);
+
+  if (user) {
+    let imgFile = {
+      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+    };
+    user.avatar = imgFile;
+
+    await user.save();
+  } else {
+    return new AppError('There is no user with this id.', 400);
+  }
+
+  res.status(204).json({
+    status: 'success',
+  });
+});
+
+const uploadLicenceFront = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  const id = req.params.id;
+  const user = await User.findById(id);
+
+  if (user) {
+    let imgFile = {
+      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+    };
+    user.driving_licence.frond = imgFile;
+
+    await user.save();
+  } else {
+    return new AppError('There is no user with this id.', 400);
+  }
+
+  res.status(204).json({
+    status: 'success',
+  });
+});
+
+const uploadLicenceBack = catchAsync(async (req, res, next) => {
+  const file = req.file;
+  const id = req.params.id;
+  const user = await User.findById(id);
+
+  if (user) {
+    let imgFile = {
+      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+    };
+    user.driving_licence.back = imgFile;
+
+    await user.save();
+  } else {
+    return new AppError('There is no user with this id.', 400);
+  }
+
+  res.status(204).json({
+    status: 'success',
   });
 });
 
@@ -78,4 +138,7 @@ module.exports = {
   updateUser,
   deleteUser,
   updateMe,
+  uploadUserImage,
+  uploadLicenceFront,
+  uploadLicenceBack,
 };

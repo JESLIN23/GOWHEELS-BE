@@ -26,23 +26,6 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email'],
     lowercase: true,
   },
-  gender: {
-    type: String,
-    trim: true,
-    enum: {
-      values: ['male', 'female', 'other'],
-      message: 'Please provide a valid gender',
-    },
-  },
-  date_of_birth: {
-    type: Date,
-    required: [true, 'Please tell us your age'],
-    validate: {
-      validator: function (val) {
-        return;
-      },
-    },
-  },
   phone: {
     type: Number,
     required: [true, 'Please provide your phone number'],
@@ -70,6 +53,10 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not same',
     },
   },
+  driving_licence: {
+    frond: String,
+    back: String,
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
@@ -79,9 +66,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  avatar: {
-    type: String,
-  },
+  avatar:String,
   isEmailVerified: {
     type: Boolean,
     default: false

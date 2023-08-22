@@ -28,4 +28,18 @@ const resizeUserImages = (req, res, next) => {
   next();
 };
 
-module.exports = { resizeUserImages, resizeCarImages };
+const resizeLicenceImages = (req, res, next) => {
+  if (!req.file) return next();
+
+  req.file.filename = `licence-${req.params.id}-${Date.now()}.jpeg`;
+  req.file.destination = `/uploads/images/licence/`;
+
+  sharp(req.file.buffer)
+    .toFormat('jpeg')
+    .jpeg({ quality: 100 })
+    .toFile(`uploads/images/licence/${req.file.filename}`);
+
+  next();
+};
+
+module.exports = { resizeUserImages, resizeCarImages, resizeLicenceImages };

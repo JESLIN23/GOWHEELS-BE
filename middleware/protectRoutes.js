@@ -7,7 +7,6 @@ const catchAsync = require('../utils/catchAsync');
 
 const protect = catchAsync(async (req, res, next) => {
   const authHeader = req?.headers?.authorization || req?.headers?.Authorization;
-
   if (!authHeader || !authHeader?.startsWith('Bearer ')) {
     return next(new AppError('Unauthorized! Please log in again', 403));
   }
