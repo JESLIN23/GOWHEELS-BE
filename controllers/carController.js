@@ -11,8 +11,8 @@ const updateCar = Factory.updateOne(Cars);
 const deleteCar = Factory.deleteOne(Cars);
 
 const uploadCarImage = catchAsync(async (req, res, next) => {
-  const file = req.file;
-  const id = req.params.id;
+  const file = req?.file;
+  const id = req.params?.id;
   const car = await Cars.findById(id);
 
   if (car) {

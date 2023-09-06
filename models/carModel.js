@@ -14,7 +14,7 @@ const carSchema = new mongoose.Schema(
       required: [true, 'A car must have a transmission type'],
       trim: true,
       enum: {
-        values: ['Manual', 'Automatic', 'Semi-automatic'],
+        values: ['manual', 'automatic', 'semi-automatic'],
         message: 'Transmission should be manual or automatic',
       },
     },
@@ -36,7 +36,7 @@ const carSchema = new mongoose.Schema(
       required: [true, 'Car must have a fuel type'],
       trim: true,
       enum: {
-        values: ['Petrol', 'Diesel', 'Electric'],
+        values: ['petrol', 'diesel', 'electric'],
         message: 'Fuel type should be petrol, diesel or electric',
       },
     },
@@ -45,16 +45,14 @@ const carSchema = new mongoose.Schema(
       required: [true, 'Segment type is required'],
       trim: true,
       enum: {
-        values: ['Hatchback', 'SUV', 'Sedan', 'MUV', 'Convertable', 'Wagon'],
+        values: ['hatchback', 'SUV', 'sedan', 'MUV', 'convertable', 'wagon'],
         message: 'Segment type is invalid',
       },
     },
-    city: [
-      {
+    city: {
         type: String,
         required: [true, 'City is required'],
       },
-    ],
     price: {
       type: Number,
       required: [true, 'Price is required'],

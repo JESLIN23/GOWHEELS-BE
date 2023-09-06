@@ -19,7 +19,7 @@ const sendEmail = async ({ to, subject, html }) => {
     html,
   };
 
-  //3) send email with nomailer
+  //3) send email with nodemailer
 
   await transporter.sendMail(mailOptions);
 };

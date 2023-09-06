@@ -13,13 +13,13 @@ const {
   uploadLicenceBack,
 } = require('../controllers/userController');
 const { protect } = require('../middleware/protectRoutes');
-const { saveUserImg, saveLicenceImg } = require('../middleware/upload');
+const { saveUserImg } = require('../middleware/upload');
 const {
   resizeUserImages,
-  resizeLicenceImages,
+  // resizeLicenceImages,
 } = require('../middleware/resizeImages');
 
-router.patch('/updateMe', protect, updateMe);
+router.patch('/updateMe', protect, saveUserImg, resizeUserImages, updateMe);
 // router.patch('/deactive', protect, deactive);
 
 router.route('/').get(protect, getAllUser).post(createUser);
@@ -39,15 +39,15 @@ router.patch(
 router.patch(
   '/:id/licence-front',
   protect,
-  saveLicenceImg,
-  resizeLicenceImages,
+  // saveLicenceImg,
+  // resizeLicenceImages,
   uploadLicenceFront
 );
 router.patch(
   '/:id/licence-back',
   protect,
-  saveLicenceImg,
-  resizeLicenceImages,
+  // saveLicenceImg,
+  // resizeLicenceImages,
   uploadLicenceBack
 );
 
