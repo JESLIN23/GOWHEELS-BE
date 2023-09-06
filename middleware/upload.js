@@ -1,9 +1,9 @@
 const multer = require('multer');
 const path = require('path');
 
-const multerStorageForUserImg = multer.memoryStorage()
-const multerStorageForCarImg = multer.memoryStorage()
-const multerStorageForLicenceImg = multer.memoryStorage()
+const multerStorageForImg = multer.memoryStorage()
+// const multerStorageForCarImg = multer.memoryStorage()
+// const multerStorageForLicenceImg = multer.memoryStorage()
 // const multerStorageForCarImg = multer.diskStorage({
 //   destination: function (req, file, cb) {
 //     cb(null, 'uploads/images/car/')
@@ -18,34 +18,38 @@ const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
-    cb(new AppError('Not an image! Please upload an image', 400));
+    cb(new AppError('Not an image! Please upload an image', 400), false);
   }
 };
 
 const imageSizeLimit = { fileSize: 1024 * 1024 * 2 }
 
-const uploadCarImg = multer({
-  storage: multerStorageForCarImg,
+const uploadImg = multer({
+  storage: multerStorageForImg,
   fileFilter: multerFilter,
   limits: imageSizeLimit
 });
-const uploadUserImg = multer({
-  storage: multerStorageForUserImg,
-  fileFilter: multerFilter,
-  limits: imageSizeLimit
-});
-const uploadLicenceImg = multer({
-  storage: multerStorageForLicenceImg,
-  fileFilter: multerFilter,
-  limits: imageSizeLimit
-});
+// const uploadUserImg = multer({
+//   storage: multerStorageForUserImg,
+//   fileFilter: multerFilter,
+//   limits: imageSizeLimit
+// });
+// const uploadLicenceImg = multer({
+//   storage: multerStorageForLicenceImg,
+//   fileFilter: multerFilter,
+//   limits: imageSizeLimit
+// });
 
-const saveCarImg = uploadCarImg.single('file')
-const saveUserImg = uploadUserImg.single('avatar')
-const saveLicenceImg = uploadLicenceImg.single('licence')
+const saveCarImg = uploadImg.single('file')
+// const saveUserImg = uploadImg.single('avatar')
+// const saveLicenceImg = uploadImg.single('licence')
+const saveUserImg = uploadImg.fields([
+  { name: 'avatar', maxCount: 1 },
+  { name: 'licence_front', maxCount: 1 },
+  { name: 'licence_back', maxCount: 1 }
+])
 
 module.exports = {
     saveCarImg,
     saveUserImg,
-    saveLicenceImg
 };
