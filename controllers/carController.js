@@ -17,7 +17,7 @@ const uploadCarImage = catchAsync(async (req, res, next) => {
 
   if (car) {
     let imgFile = {
-      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+      url: `${process.env.BASE_URL}${file.destination}${file.filename}`,
     };
     car.images.push(imgFile);
 
@@ -38,9 +38,11 @@ const getAvailableCars = catchAsync(async (req, res, next) => {
     fuel,
     transmission,
     pickup_date,
+    sort,
   } = req.query;
   const query = { city: pickup_city, segment, fuel, transmission };
-  const features = new APIFeatures(Cars.find(), query).filter();
+  if(sort) query.sort = sort
+  const features = new APIFeatures(Cars.find(), query).filter().sort();
   const document = await features.query;
 
   let data = { available_cars: [], booked_cars: [] };

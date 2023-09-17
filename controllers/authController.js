@@ -5,7 +5,7 @@ const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const OTP = require('../models/otpModel');
 const catchAsync = require('../utils/catchAsync');
-const sendEmail = require('../utils/sendEmail');
+const Email = require('../utils/sendEmail');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const sendNumberVerificationOTP = require('../utils/sendNumberVerificationOTP');
 const { sendJWTToken, createJWT } = require('../utils/jwt');
@@ -37,6 +37,9 @@ const signup = catchAsync(async (req, res, next) => {
   await Token.create({ refreshToken: refreshTokenJWT, user: newUser._id });
 
   newUser.password = undefined;
+
+  const url =  `${req.protocol}://${process.env.WEB_URL}`;
+  await new Email(newUser, url).sendWelcome();
 
   res.status(201).json({
     status: 'success',
@@ -194,19 +197,10 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false }); //when creating the token document was not saved, it is now.
 
   //3)send it to users email
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )}/api/v1/user/resetPassword/${resetToken}`;
-
-  const message = `Forgot your password? Submit a request with new password
-   and password confirm to ${resetURL}. \n If no, then ignore this email.`;
+  const resetURL = `${req.protocol}://${process.env.WEB_URL}/reset-password/${resetToken}`;
 
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your password reset Token (valid for 10 min)',
-      message,
-    });
+    await new Email(user, resetURL).sendPasswordReset()
 
     res.status(200).json({
       status: 'success',

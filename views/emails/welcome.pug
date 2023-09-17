@@ -1,0 +1,18 @@
+
+extends baseEmail
+
+block content
+  p Hi #{firstName},
+  p Welcome to Gowheels, we're glad to have you 🎉🙏
+  p We're thrilled to have you on board and to be your go-to destination for all your car rental needs. Whether it's for a weekend getaway, a business trip, or just your daily commute, we've got the perfect wheels for you.
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') Rent a car
+  p If you need any help with booking your car, please don't hesitate to contact us!
+  p - Jeslin musthafa

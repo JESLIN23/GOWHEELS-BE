@@ -7,7 +7,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
-const axios = require('axios');
+const path = require('path')
 
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
@@ -60,7 +60,12 @@ app.use(
   })
 );
 
-app.use('/uploads/images/car', express.static('uploads/images/car'));
+// app.use('/uploads/images/car', express.static('uploads/images/car'))
+// app.use(express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/images/car', express.static(path.join(__dirname, 'uploads/images/car')));
+app.use('/uploads/images/avatar', express.static(path.join(__dirname, 'uploads/images/avatar')));
+app.use('/uploads/images/licence', express.static(path.join(__dirname, 'uploads/images/licence')));
+app.use('/uploads/files', express.static(path.join(__dirname, 'uploads/files')));
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);

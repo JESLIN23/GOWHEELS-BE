@@ -10,19 +10,25 @@ const {
   closeOrder,
   cancelOrder,
   OrderChart,
+  getCheckoutSession,
+  getMyOrders,
 } = require('../controllers/orderController');
 
-router.get('/order-chart', protect, restrictTo('admin'), OrderChart)
+router.use(protect)
+
+router.post('/checkout-session/:carId', getCheckoutSession)
+router.get('/order-chart', restrictTo('admin'), OrderChart)
+router.get('/my-orders', getMyOrders)
 router
   .route('/')
-  .get(protect, restrictTo('admin'), getAllOrder)
-  .post(protect, createOrder);
+  .get( restrictTo('admin'), getAllOrder)
+  .post( createOrder);
 router
   .route('/:id')
-  .get(protect, getOrder)
-  .patch(protect, updateOrder)
+  .get( getOrder)
+  .patch( updateOrder)
 
-router.patch('/close-order/:id', protect, restrictTo('admin'), closeOrder)
-router.patch('/cancel-order/:id', protect, cancelOrder)
+router.patch('/close-order/:id', restrictTo('admin'), closeOrder)
+router.patch('/cancel-order/:id', cancelOrder)
 
 module.exports = router;

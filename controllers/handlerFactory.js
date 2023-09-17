@@ -96,6 +96,7 @@ const getOne = (Model) =>
 const getAll = (Model, option) =>
   catchAsync(async (req, res, next) => {
     const features = new APIFeatures(Model.find(option), req.query)
+      .search()
       .filter()
       .sort()
       .limitFields()

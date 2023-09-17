@@ -27,7 +27,7 @@ const resizeUserImages = catchAsync(async (req, res, next) => {
 
   if (avatar) {
     const avatar_file_name = `avatar-${req.user.id}-${Date.now()}.jpeg`;
-    data.avatar = `${process.env.WEB_URL}/${avatar_file_destination}${avatar_file_name}`;
+    data.avatar = `${process.env.BASE_URL}/${avatar_file_destination}${avatar_file_name}`;
     await sharp(avatar[0].buffer)
       .resize(400, 400)
       .toFormat('jpeg')
@@ -41,7 +41,7 @@ const resizeUserImages = catchAsync(async (req, res, next) => {
     }-${Date.now()}.jpeg`;
     data.driving_licence = {
       ...data.driving_licence,
-      front_img: `${process.env.WEB_URL}/${licence_file_destination}${licence_front_file_name}`,
+      front_img: `${process.env.BASE_URL}/${licence_file_destination}${licence_front_file_name}`,
     };
     await sharp(licence_front[0].buffer)
       .resize(2000, 1333)
@@ -56,7 +56,7 @@ const resizeUserImages = catchAsync(async (req, res, next) => {
     }-${Date.now()}.jpeg`;
     data.driving_licence = {
       ...data.driving_licence,
-      back_img: `${process.env.WEB_URL}/${licence_file_destination}${licence_back_file_name}`,
+      back_img: `${process.env.BASE_URL}/${licence_file_destination}${licence_back_file_name}`,
     };
 
     await sharp(licence_back[0].buffer)
