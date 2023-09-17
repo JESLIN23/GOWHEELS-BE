@@ -41,7 +41,8 @@
     "prettier": "2.8.4"
   },
   "scripts": {
-    "start": "set NODE_ENV=development&& nodemon server.js",
+    "start": "node server.js",
+    "start:dev": "set NODE_ENV=development&& nodemon server.js",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
     "format": "npx prettier --write .",
     "debug": "ndb server.js"
@@ -51,5 +52,9 @@
   "main": "app.js",
   "author": "jeslin",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }
+
