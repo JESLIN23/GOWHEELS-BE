@@ -29,7 +29,7 @@ router.post('/phone-verification-otp', protect, sendVerificationOTP);
 router.post('/email-verification', protect, sendEmailVerification);
 router.get('/user-profile', protect, userProfile)
 
-router.post('/forgetPassword', forgotPassword);
+router.post('/forgot-password', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
 router.patch('/updatePassword', protect, updatePassword);
 

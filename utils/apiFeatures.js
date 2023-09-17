@@ -31,14 +31,30 @@ class APIFeatures {
   }
 
   search(searchFields) {
-    if (this.queryString.search) {
+    if (this.queryString?.search) {
       const searchRegex = new RegExp(this.queryString.search, 'i');
+      
+      let queryStr;
 
-      let queryStr = {
-        $or: searchFields.map((field) => ({
-          [field]: { $regex: searchRegex },
-        })),
-      };
+      if (searchFields && searchFields.length > 0) {
+        queryStr = {
+          $or: searchFields.map((field) => ({
+            [field]: { $regex: searchRegex },
+          })),
+        };
+      } else {
+        queryStr = {
+          $or: Object.keys(this.query.model.schema.paths).reduce(
+            (acc, field) => {
+              if (field !== '__v') {
+                acc.push({ [field]: { $regex: searchRegex } });
+              }
+              return acc;
+            },
+            []
+          ),
+        };
+      }
 
       this.query = this.query.find(queryStr);
     }
@@ -46,7 +62,7 @@ class APIFeatures {
   }
 
   sort() {
-    if (this.queryString.sort) {
+    if (this.queryString?.sort) {
       let sortBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
     } else {
@@ -56,7 +72,7 @@ class APIFeatures {
   }
 
   limitFields() {
-    if (this.queryString.fields) {
+    if (this.queryString?.fields) {
       const fields = req.query.fields.split(',').join(' ');
       this.query = this.query.select(fields);
     } else {
@@ -66,8 +82,8 @@ class APIFeatures {
   }
 
   pagination() {
-    const page = this.queryString.page * 1 || 1;
-    const limit = this.queryString.limit * 1 || 100;
+    const page = this.queryString?.page * 1 || 1;
+    const limit = this.queryString?.limit * 1 || 100;
     const skip = (page - 1) * limit;
     this.query = this.query.skip(skip).limit(limit);
 

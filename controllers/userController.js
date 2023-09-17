@@ -57,7 +57,7 @@ const uploadUserImage = catchAsync(async (req, res, next) => {
 
   if (user) {
     let imgFile = {
-      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+      url: `${process.env.BASE_URL}${file.destination}${file.filename}`,
     };
     user.avatar = imgFile;
 
@@ -78,7 +78,7 @@ const uploadLicenceFront = catchAsync(async (req, res, next) => {
 
   if (user) {
     let imgFile = {
-      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+      url: `${process.env.BASE_URL}${file.destination}${file.filename}`,
     };
     user.driving_licence.frond = imgFile;
 
@@ -99,7 +99,7 @@ const uploadLicenceBack = catchAsync(async (req, res, next) => {
 
   if (user) {
     let imgFile = {
-      url: `${process.env.WEB_URL}${file.destination}${file.filename}`,
+      url: `${process.env.BASE_URL}${file.destination}${file.filename}`,
     };
     user.driving_licence.back = imgFile;
 

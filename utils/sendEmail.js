@@ -1,27 +1,67 @@
 const nodemailer = require('nodemailer');
+const pug = require('pug');
+const { convert } = require('html-to-text');
 
-const sendEmail = async ({ to, subject, html }) => {
-  const nodemailerConfig = {
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  };
+module.exports = class sendEmail {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.firstName;
+    this.url = url;
+    this.from = `GOWheels <${process.env.EMAIL_FROM}>`;
+  }
 
-  const transporter = nodemailer.createTransport(nodemailerConfig);
-  //2) define email options
-  const mailOptions = {
-    from: 'GOWheels <jeslinmusthafa23@gmail.com>',
-    to,
-    subject,
-    html,
-  };
+  newTransport() {
+    if (process.env.NODE_ENV === 'production') {
+      return nodemailer.createTransport({
+        host: process.env.BRAVO_MAIL_HOST,
+        port: Number(process.env.BRAVO_MAIL_PORT),
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.BREVO_MAIL_USERNAME,
+          pass: process.env.BREVO_MAIL_KEY,
+        },
+      });
+    }
 
-  //3) send email with nodemailer
+    return nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
 
-  await transporter.sendMail(mailOptions);
+  async send(template, subject) {
+    const html = pug.renderFile(
+      `${__dirname}/../views/emails/${template}.pug`,
+      {
+        firstName: this.firstName,
+        url: this.url,
+        subject,
+      }
+    );
+
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject,
+      html,
+      text: convert(html),
+    };
+
+    await this.newTransport().sendMail(mailOptions);
+  }
+
+  async sendWelcome() {
+    await this.send('welcome', 'Welcome to gowheels.');
+  }
+
+  async sendPasswordReset() {
+    await this.send(
+      'passwordReset',
+      'Your password reset token (valid for only 10 min)'
+    );
+  }
 };
-
-module.exports = sendEmail;

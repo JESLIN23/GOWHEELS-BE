@@ -8,11 +8,12 @@ const orderSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: User,
+      required: [true, 'Booking must belong to a user!']
     },
     user_name: {
       type: String,
       trim: true,
-      required: true,
+      required: [true, 'Please provide username'],
     },
     status: {
       type: String,
@@ -22,10 +23,13 @@ const orderSchema = new mongoose.Schema(
         message: 'Invalid status',
       },
     },
-    amount: Number,
+    amount: {
+      type: Number,
+      required: [true, 'Booking must have an amount!']
+    },
     pickup_date: {
       type: Date,
-      required: true,
+      required: [true, 'Booking must have pickup date'],
     },
     active: {
       type: Boolean,
@@ -41,7 +45,7 @@ const orderSchema = new mongoose.Schema(
     },
     dropoff_date: {
       type: Date,
-      required: true,
+      required: [true, 'Booking must have dropoff date'],
     },
     pickup_location: {
       type: String,
@@ -52,11 +56,11 @@ const orderSchema = new mongoose.Schema(
     car: {
       type: mongoose.Schema.Types.ObjectId,
       ref: Cars,
-      required: true,
+      required: [true, 'Booking must belong to a car!'],
     },
     city: {
       type: String,
-      required: true,
+      required: [true, 'Please provide your city'],
     },
   },
   {
@@ -70,6 +74,11 @@ orderSchema.pre('save', async function (next) {
   this.orderId = await getOrderCount() + 1;
   next();
 });
+
+orderSchema.pre(/^find/, function (next) {
+  this.populate('user').populate('car')
+  next()
+})
 
 const Order = mongoose.model('Order', orderSchema);
 
