@@ -41,7 +41,7 @@
     "prettier": "2.8.4"
   },
   "scripts": {
-    "start": "node run server.js",
+    "start": "node server.js",
     "start:dev": "set NODE_ENV=development&& nodemon server.js",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
     "format": "npx prettier --write .",
