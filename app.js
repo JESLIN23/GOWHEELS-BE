@@ -7,30 +7,26 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
-const path = require('path')
+const path = require('path');
+const compression = require('compression');
 
+const router = require('./routes');
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
-const userRouter = require('./routes/userRouter');
-const carRouter = require('./routes/carRouter');
-const authRouter = require('./routes/authRouter');
-const orderRouter = require('./routes/orderRouter')
 
 const app = express();
 
-const corsOptions = {
-  origin: 'http://localhost:3000',
-  credentials: true,
-  optionSuccessStatus: 200,
-};
+// const corsOptions = {
+//   origin: 'http://localhost:3000',
+//   credentials: true,
+//   optionSuccessStatus: 200,
+// };
 
-app.use(cors(corsOptions));
-app.use(
-  helmet({
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false
-  })
-);
+app.use(cors());
+app.options('*', cors());
+// app.options('/api/v1/cars/:id', cors())
+
+app.use(helmet());
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -61,16 +57,31 @@ app.use(
 );
 
 // app.use('/uploads/images/car', express.static('uploads/images/car'))
-// app.use(express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads/images/car', express.static(path.join(__dirname, 'uploads/images/car')));
-app.use('/uploads/images/avatar', express.static(path.join(__dirname, 'uploads/images/avatar')));
-app.use('/uploads/images/licence', express.static(path.join(__dirname, 'uploads/images/licence')));
-app.use('/uploads/files', express.static(path.join(__dirname, 'uploads/files')));
+app.use(express.static(path.join(__dirname, 'uploads')));
+app.use(
+  '/uploads/images/car',
+  express.static(path.join(__dirname, 'uploads/images/car'))
+);
+app.use(
+  '/uploads/images/avatar',
+  express.static(path.join(__dirname, 'uploads/images/avatar'))
+);
+app.use(
+  '/uploads/images/licence',
+  express.static(path.join(__dirname, 'uploads/images/licence'))
+);
+app.use(
+  '/uploads/files',
+  express.static(path.join(__dirname, 'uploads/files'))
+);
 
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/car', carRouter);
-app.use('/api/v1/order', orderRouter)
+app.use(compression());
+
+app.use('/api/v1', router);
+
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the gowheels API!' });
+});
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} from this server`, 404));
