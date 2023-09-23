@@ -16,13 +16,15 @@ const AppError = require('./utils/appError');
 
 const app = express();
 
-// const corsOptions = {
-//   origin: 'http://localhost:3000',
-//   credentials: true,
-//   optionSuccessStatus: 200,
-// };
+const corsOptions = {
+  origin: [
+    'https://admin-gowheels.firebaseapp.com',
+    'https://gowheels-rental.firebaseapp.com',
+  ],
+  credentials: true,
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.options('*', cors());
 // app.options('/api/v1/cars/:id', cors())
 
@@ -57,7 +59,7 @@ app.use(
 );
 
 // app.use('/uploads/images/car', express.static('uploads/images/car'))
-app.use(express.static(path.join(__dirname, 'uploads')));
+// app.use(express.static(path.join(__dirname, 'uploads')));
 app.use(
   '/uploads/images/car',
   express.static(path.join(__dirname, 'uploads/images/car'))
