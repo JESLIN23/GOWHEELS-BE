@@ -8,23 +8,25 @@ const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
 const path = require('path')
+const router = require('./routes')
 
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
-const userRouter = require('./routes/userRouter');
-const carRouter = require('./routes/carRouter');
-const authRouter = require('./routes/authRouter');
-const orderRouter = require('./routes/orderRouter')
 
 const app = express();
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: [
+    'https://admin-gowheels.firebaseapp.com',
+    'https://gowheels-rental.firebaseapp.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ],
   credentials: true,
-  optionSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors());
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
@@ -67,10 +69,7 @@ app.use('/uploads/images/avatar', express.static(path.join(__dirname, 'uploads/i
 app.use('/uploads/images/licence', express.static(path.join(__dirname, 'uploads/images/licence')));
 app.use('/uploads/files', express.static(path.join(__dirname, 'uploads/files')));
 
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/users', userRouter);
-app.use('/api/v1/car', carRouter);
-app.use('/api/v1/order', orderRouter)
+app.use('/api/v1', router);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} from this server`, 404));
