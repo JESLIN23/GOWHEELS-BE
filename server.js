@@ -22,9 +22,14 @@ mongoose
     useUnifiedTopology: true,
     autoIndex: true,
   })
-  .then(() => console.log('DB connection successful'));
+  .then(() => {
+    console.log('DB connection successful!')
+  })
+  .catch((err) => {
+    console.error('Error connecting to the database:', err.message);
+  });
 
-const port = process.env.PORT || 6000;
+const port = process.env.PORT || 6060;
 const server = app.listen(port, () => {
   console.log(`listening ${port}`);
 });
