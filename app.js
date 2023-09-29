@@ -7,10 +7,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
-const path = require('path');
-const compression = require('compression');
+const path = require('path')
 
-const router = require('./routes');
+const router = require('./routes')
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 
@@ -20,15 +19,20 @@ const corsOptions = {
   origin: [
     'https://admin-gowheels.firebaseapp.com',
     'https://gowheels-rental.firebaseapp.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
   ],
   credentials: true,
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors());
-// app.options('/api/v1/cars/:id', cors())
-
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false
+  })
+);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -60,29 +64,15 @@ app.use(
 
 // app.use('/uploads/images/car', express.static('uploads/images/car'))
 // app.use(express.static(path.join(__dirname, 'uploads')));
-app.use(
-  '/uploads/images/car',
-  express.static(path.join(__dirname, 'uploads/images/car'))
-);
-app.use(
-  '/uploads/images/avatar',
-  express.static(path.join(__dirname, 'uploads/images/avatar'))
-);
-app.use(
-  '/uploads/images/licence',
-  express.static(path.join(__dirname, 'uploads/images/licence'))
-);
-app.use(
-  '/uploads/files',
-  express.static(path.join(__dirname, 'uploads/files'))
-);
-
-app.use(compression());
+app.use('/uploads/images/car',express.static(path.join(__dirname, 'uploads/images/car')));
+app.use('/uploads/images/avatar',express.static(path.join(__dirname, 'uploads/images/avatar')));
+app.use('/uploads/images/licence',express.static(path.join(__dirname, 'uploads/images/licence')));
+app.use('/uploads/files',express.static(path.join(__dirname, 'uploads/files')));
 
 app.use('/api/v1', router);
 
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Welcome to the gowheels API!' });
+  res.send('Welcome to gowheels');
 });
 
 app.all('*', (req, res, next) => {
