@@ -72,7 +72,7 @@ app.use('/uploads/files',express.static(path.join(__dirname, 'uploads/files')));
 app.use('/api/v1', router);
 
 app.get('/', (req, res) => {
-  res.send('Welcome to gowheels server');
+  res.send('Welcome to gowheels');
 });
 
 app.all('*', (req, res, next) => {
