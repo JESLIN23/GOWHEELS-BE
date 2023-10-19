@@ -7,9 +7,10 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
-const path = require('path')
+const path = require('path');
 
-const router = require('./routes')
+const orderController = require('./controllers/orderController');
+const router = require('./routes');
 const globalErrorHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
 
@@ -30,7 +31,7 @@ app.options('*', cors());
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: false
+    crossOriginResourcePolicy: false,
   })
 );
 
@@ -44,6 +45,12 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP. Please try again in an hour!',
 });
 app.use('/api', limiter);
+
+app.post(
+  '/webhook-checkout',
+  express.raw({ type: 'application/json' }),
+  orderController.webhookCheckout
+);
 
 app.use(express.json({ limit: '2048kb' }));
 app.use(cookieParser());
@@ -64,10 +71,22 @@ app.use(
 
 // app.use('/uploads/images/car', express.static('uploads/images/car'))
 // app.use(express.static(path.join(__dirname, 'uploads')));
-app.use('/uploads/images/car',express.static(path.join(__dirname, 'uploads/images/car')));
-app.use('/uploads/images/avatar',express.static(path.join(__dirname, 'uploads/images/avatar')));
-app.use('/uploads/images/licence',express.static(path.join(__dirname, 'uploads/images/licence')));
-app.use('/uploads/files',express.static(path.join(__dirname, 'uploads/files')));
+app.use(
+  '/uploads/images/car',
+  express.static(path.join(__dirname, 'uploads/images/car'))
+);
+app.use(
+  '/uploads/images/avatar',
+  express.static(path.join(__dirname, 'uploads/images/avatar'))
+);
+app.use(
+  '/uploads/images/licence',
+  express.static(path.join(__dirname, 'uploads/images/licence'))
+);
+app.use(
+  '/uploads/files',
+  express.static(path.join(__dirname, 'uploads/files'))
+);
 
 app.use('/api/v1', router);
 
