@@ -5,13 +5,13 @@ const { protect, restrictTo } = require('../middleware/protectRoutes');
 const {
   getAllOrder,
   getOrder,
-  createOrder,
   updateOrder,
   closeOrder,
   cancelOrder,
   OrderChart,
   getCheckoutSession,
   getMyOrders,
+  webhookCheckout,
 } = require('../controllers/orderController');
 
 router.use(protect)
@@ -22,7 +22,7 @@ router.get('/my-orders', getMyOrders)
 router
   .route('/')
   .get( restrictTo('admin'), getAllOrder)
-  .post( createOrder);
+  .post( webhookCheckout);
 router
   .route('/:id')
   .get( getOrder)
