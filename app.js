@@ -18,7 +18,7 @@ const app = express();
 
 const corsOptions = {
   origin: [
-    'https://admin-gowheels.firebaseapp.com',
+    'https://admin-gowheel.firebaseapp.com',
     'https://gowheels-rental.firebaseapp.com',
     'http://localhost:3000',
     'http://localhost:3001',
