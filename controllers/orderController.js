@@ -4,7 +4,8 @@ const Cars = require('../models/carModel');
 const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const Factory = require('../controllers/handlerFactory')
+const Factory = require('../controllers/handlerFactory');
+const User = require('../models/userModel');
 
 const getOrder = Factory.getOne(Order);
 const updateOrder = Factory.updateOne(Order);
@@ -38,9 +39,7 @@ const getCheckoutSession = catchAsync(async (req, res, next) => {
           currency: 'inr',
           product_data: {
             name: `${car.brand} ${car.name}`,
-            images: [
-              `${car.images[0].url}`,
-            ],
+            images: [`${car.images[0].url}`],
           },
           unit_amount: calculatedBookingPrice(car?.price) * 100,
         },
@@ -50,6 +49,14 @@ const getCheckoutSession = catchAsync(async (req, res, next) => {
     mode: 'payment',
     success_url: `${req.protocol}://${process.env.WEB_URL}/home`,
     cancel_url: `${req.protocol}://${process.env.WEB_URL}/home`,
+
+    metadata: {
+      pickup_date: data?.pickupDate?.pickup_date,
+      dropoff_date: data?.dropoffDate?.dropoff_date,
+      pickup_location: data?.dropoffPoint?.pickup_location,
+      dropoff_location: data?.dropoffPoint?.dropoff_location,
+      city: data?.dropoffDate?.pickup_city,
+    },
   });
 
   res.status(200).json({
@@ -59,14 +66,14 @@ const getCheckoutSession = catchAsync(async (req, res, next) => {
 });
 
 const getMyOrders = catchAsync(async (req, res) => {
-  const orders = await Order.find({ user: req.user.id })
+  const orders = await Order.find({ user: req.user.id });
 
   res.status(200).json({
     status: 'success',
     data: orders,
     count: orders.length,
-  })
-})
+  });
+});
 
 const getAllOrder = catchAsync(async (req, res) => {
   const features = new APIFeatures(Order.find(), req.query)
@@ -106,6 +113,54 @@ const createOrder = catchAsync(async (req, res) => {
     },
   });
 });
+
+const createOrderCheckout = async (session) => {
+  const car = session.client_reference_id;
+  const user = await User.findOne({ email: session?.customer_email });
+  const price = session.line_items[0].price_data.unit_amount / 100;
+  const document = await Order.create({
+    user: user._id,
+    user_name: user.name,
+    car,
+    amount: price,
+    pickup_date: session.metadata.pickup_date,
+    pickup_location: session.metadata.pickup_location,
+    dropoff_date: session.metadata.dropoff_date,
+    dropoff_location: session.metadata.dropoff_location,
+    city: session.metadata.city,
+  });
+
+  if (document) {
+    const car = await Cars.findById(document.car._id);
+    car.active_bookings.push({
+      pickup_date: document.pickup_date,
+      dropoff_date: document.dropoff_date,
+      orderId: document._id,
+    });
+    await car.save();
+  }
+};
+
+const webhookCheckout = (req, res, next) => {
+  const signature = req.headers['stripe-signature'];
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      request.body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch (error) {
+    return res.statue(400).send(`webhook error: ${error.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    createOrderCheckout(event.data.object);
+
+    return res.status(200).json({ received: true });
+  }
+};
 
 const closeOrder = catchAsync(async (req, res) => {
   const document = await Order.findByIdAndUpdate(req.params.id, {
@@ -252,4 +307,5 @@ module.exports = {
   cancelOrder,
   OrderChart,
   getMyOrders,
+  webhookCheckout,
 };
