@@ -14,23 +14,17 @@ const {
   webhookCheckout,
 } = require('../controllers/orderController');
 
-router.route('/').post( webhookCheckout);
-
-router.use(protect)
-
-router.post('/checkout-session/:carId', getCheckoutSession)
-router.get('/order-chart', restrictTo('admin'), OrderChart)
-router.get('/my-orders', getMyOrders)
+router.post('/checkout-session/:carId', protect, getCheckoutSession);
+router.get('/order-chart', protect, restrictTo('admin'), OrderChart);
+router.get('/my-orders', protect, getMyOrders);
 router
   .route('/')
-  .get( restrictTo('admin'), getAllOrder)
- 
-router
-  .route('/:id')
-  .get( getOrder)
-  .patch( updateOrder)
+  .get(protect, restrictTo('admin'), getAllOrder)
+  .post(webhookCheckout);
 
-router.patch('/close-order/:id', restrictTo('admin'), closeOrder)
-router.patch('/cancel-order/:id', cancelOrder)
+router.route('/:id').get(protect, getOrder).patch(protect, updateOrder);
+
+router.patch('/close-order/:id', restrictTo('admin'), closeOrder);
+router.patch('/cancel-order/:id', cancelOrder);
 
 module.exports = router;
