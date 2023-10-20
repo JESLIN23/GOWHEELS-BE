@@ -147,12 +147,12 @@ const webhookCheckout = (req, res, next) => {
   let event;
   try {
     event = stripe.webhooks.constructEvent(
-      request.body,
+      req.body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (error) {
-    return res.statue(400).send(`webhook error: ${error.message}`);
+    return res.status(400).send(`webhook error: ${error.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
