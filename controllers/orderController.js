@@ -143,12 +143,11 @@ const createOrderCheckout = async (session) => {
 
 const webhookCheckout = (req, res, next) => {
   const signature = req.headers['stripe-signature'];
-  const rawBody = req.rawBody;
-
+  
   let event;
   try {
     event = stripe.webhooks.constructEvent(
-      rawBody,
+      req.body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
