@@ -53,9 +53,9 @@ const getCheckoutSession = catchAsync(async (req, res, next) => {
     metadata: {
       pickup_date: data?.pickupDate?.pickup_date,
       dropoff_date: data?.dropoffDate?.dropoff_date,
-      pickup_location: data?.dropoffPoint?.pickup_location,
+      pickup_location: data?.pickupPoint?.pickup_location,
       dropoff_location: data?.dropoffPoint?.dropoff_location,
-      city: data?.dropoffDate?.pickup_city,
+      city: data?.pickupPoint?.pickup_city,
     },
   });
 
@@ -117,7 +117,7 @@ const createOrder = catchAsync(async (req, res) => {
 const createOrderCheckout = async (session) => {
   const car = session.client_reference_id;
   const user = await User.findOne({ email: session?.customer_email });
-  const price = session.line_items[0].price_data.unit_amount / 100;
+  const price = session.amount_subtotal / 100;
   const document = await Order.create({
     user: user._id,
     user_name: user.name,
