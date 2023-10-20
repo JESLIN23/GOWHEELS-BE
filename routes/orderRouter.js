@@ -14,6 +14,8 @@ const {
   webhookCheckout,
 } = require('../controllers/orderController');
 
+router.route('/').post( webhookCheckout);
+
 router.use(protect)
 
 router.post('/checkout-session/:carId', getCheckoutSession)
@@ -22,7 +24,7 @@ router.get('/my-orders', getMyOrders)
 router
   .route('/')
   .get( restrictTo('admin'), getAllOrder)
-  .post( webhookCheckout);
+ 
 router
   .route('/:id')
   .get( getOrder)
