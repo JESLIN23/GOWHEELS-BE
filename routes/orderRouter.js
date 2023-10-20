@@ -20,7 +20,7 @@ router.get('/my-orders', protect, getMyOrders);
 router
   .route('/')
   .get(protect, restrictTo('admin'), getAllOrder)
-  .post(webhookCheckout);
+  .post( express.text(), webhookCheckout);
 
 router.route('/:id').get(protect, getOrder).patch(protect, updateOrder);
 
