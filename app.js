@@ -47,7 +47,7 @@ const limiter = rateLimit({
 app.use('/api', limiter);
 
 app.post(
-  '/api/v1/webhook-checkout',
+  '/webhook-checkout',
   express.raw({ type: 'application/json' }),
   orderController.webhookCheckout
 );
