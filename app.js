@@ -44,13 +44,14 @@ const limiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   message: 'Too many requests from this IP. Please try again in an hour!',
 });
-app.use('/api', limiter);
 
 app.post(
   '/webhook-checkout',
-  express.raw({ type: 'application/json' }),
+  express.json({ type: 'application/json' }),
   orderController.webhookCheckout
 );
+
+app.use('/api', limiter);
 
 app.use(express.json({ limit: '2048kb' }));
 app.use(cookieParser());
