@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const hpp = require('hpp');
 const cors = require('cors');
 const path = require('path');
+const bodyParser = require('body-parser');
 
 const orderController = require('./controllers/orderController');
 const router = require('./routes');
@@ -45,13 +46,13 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP. Please try again in an hour!',
 });
 
+app.use('/api', limiter);
+
 app.post(
   '/webhook-checkout',
-  express.raw({type: 'application/json'}),
+  bodyParser.raw({ type: 'application/json' }),
   orderController.webhookCheckout
 );
-
-app.use('/api', limiter);
 
 app.use(express.json({ limit: '2048kb' }));
 app.use(cookieParser());
