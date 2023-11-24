@@ -131,6 +131,7 @@ const createOrderCheckout = async (session) => {
   });
 
   if (document) {
+    console.log(document);
     const car = await Cars.findById(document.car._id);
     car.active_bookings.push({
       pickup_date: document.pickup_date,
