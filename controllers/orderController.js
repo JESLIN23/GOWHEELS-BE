@@ -145,13 +145,18 @@ const createOrderCheckout = async (session) => {
 const webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
-  const rawBody = await getRawBody(req, {
+  await getRawBody(req, {
     length: req.headers['content-length'],
-    encoding: 'utf8',
-  });
+    limit: '1mb',
+    encoding: contentType.parse(req).parameters.charset
+  }, function (err, string) {
+    if (err) return next(err)
+    req.text = string
+    next()
+  })
 
-  console.log(rawBody);
-  console.log('Type of rawBody:', typeof rawBody);
+  console.log(req.text);
+  console.log('Type of rawBody:', typeof req.text);
 
   let event;
   try {
