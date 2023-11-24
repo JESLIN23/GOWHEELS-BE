@@ -141,7 +141,7 @@ const createOrderCheckout = async (session) => {
   }
 };
 
-const webhookCheckout = (req, res, next) => {
+const webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
   console.log(rawBody);
@@ -159,7 +159,8 @@ const webhookCheckout = (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') {
-    createOrderCheckout(event.data.object);
+    console.log(event.type, event.data.object);
+    await createOrderCheckout(event.data.object);
 
     return res.status(200).json({ received: true });
   }
