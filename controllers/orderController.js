@@ -7,6 +7,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Factory = require('../controllers/handlerFactory');
 const User = require('../models/userModel');
 const getRawBody = require('raw-body');
+const contentType = require('content-type');
 
 const getOrder = Factory.getOne(Order);
 const updateOrder = Factory.updateOne(Order);
@@ -145,18 +146,17 @@ const createOrderCheckout = async (session) => {
 const webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
-  await getRawBody(req, {
+  const rawBody = await getRawBody(req, {
     length: req.headers['content-length'],
     limit: '1mb',
     encoding: contentType.parse(req).parameters.charset
   }, function (err, string) {
     if (err) return next(err)
-    req.text = string
-    next()
+    return string
   })
 
-  console.log(req.text);
-  console.log('Type of rawBody:', typeof req.text);
+  console.log(rawBody);
+  console.log('Type of rawBody:', typeof rawBody);
 
   let event;
   try {
