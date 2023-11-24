@@ -146,12 +146,9 @@ const createOrderCheckout = async (session) => {
 const webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
-  console.log(req.body);
-  console.log('Type of rawBody:', typeof req.body);
-
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = await stripe.webhooks.constructEvent(
       req.body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
@@ -161,7 +158,6 @@ const webhookCheckout = async (req, res, next) => {
   }
 
   if (event.type === 'checkout.session.completed') {
-    console.log(event.type, event.data.object);
     await createOrderCheckout(event.data.object);
 
     return res.status(200).json({ received: true });
