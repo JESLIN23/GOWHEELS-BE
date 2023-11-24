@@ -6,8 +6,6 @@ const AppError = require('../utils/appError');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Factory = require('../controllers/handlerFactory');
 const User = require('../models/userModel');
-const getRawBody = require('raw-body');
-const contentType = require('content-type');
 
 const getOrder = Factory.getOne(Order);
 const updateOrder = Factory.updateOne(Order);
