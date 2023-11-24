@@ -120,7 +120,7 @@ const createOrderCheckout = async (session) => {
   const price = session.amount_subtotal / 100;
   const document = await Order.create({
     user: user._id,
-    user_name: user.name,
+    user_name: `${user?.firstName} ${user?.secondName}`,
     car,
     amount: price,
     pickup_date: session.metadata.pickup_date,
@@ -146,7 +146,7 @@ const webhookCheckout = async (req, res, next) => {
 
   let event;
   try {
-    event = await stripe.webhooks.constructEvent(
+    event = stripe.webhooks.constructEvent(
       req.body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
