@@ -146,22 +146,27 @@ const createOrderCheckout = async (session) => {
 const webhookCheckout = async (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
-  const rawBody = await getRawBody(req, {
+  getRawBody(req, {
     length: req.headers['content-length'],
     limit: '1mb',
     encoding: contentType.parse(req).parameters.charset
   }, function (err, string) {
-    if (err) return next(err)
-    return string
+    if (err) {
+      console.error('Error reading raw body:', err);
+      return res.status(500).send('Internal Server Error');
+    }
+  
+    req.text = string;
+  
+    // Log the raw body and its type after it's obtained
+    console.log(req.text);
+    console.log('Type of rawBody:', typeof req.text);
   })
-
-  console.log(rawBody);
-  console.log('Type of rawBody:', typeof rawBody);
 
   let event;
   try {
     event = stripe.webhooks.constructEvent(
-      rawBody,
+      req.text,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET
     );
