@@ -144,8 +144,8 @@ const createOrderCheckout = async (session) => {
 const webhookCheckout = (req, res, next) => {
   const signature = req.headers['stripe-signature'];
 
-  const rawBody = req.body;
-  
+  const rawBody = JSON.stringify(req.body);
+
   console.log(rawBody);
   console.log('Type of rawBody:', typeof rawBody);
   
