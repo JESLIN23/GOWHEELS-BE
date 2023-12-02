@@ -23,10 +23,7 @@
     "otp-generator": "^4.0.1",
     "path": "^0.12.7",
     "pug": "^3.0.2",
-    "rand-token": "^1.0.1",
-    "raw-body": "^2.5.2",
     "sharp": "^0.32.1",
-    "shortid": "^2.2.16",
     "stripe": "^13.5.0",
     "validator": "^13.9.0",
     "xss-clean": "^0.1.1"
