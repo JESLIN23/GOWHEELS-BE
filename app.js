@@ -72,22 +72,22 @@ app.use(
 
 // app.use('/uploads/images/car', express.static('uploads/images/car'))
 // app.use(express.static(path.join(__dirname, 'uploads')));
-app.use(
-  '/uploads/images/car',
-  express.static(path.join(__dirname, 'uploads/images/car'))
-);
-app.use(
-  '/uploads/images/avatar',
-  express.static(path.join(__dirname, 'uploads/images/avatar'))
-);
-app.use(
-  '/uploads/images/licence',
-  express.static(path.join(__dirname, 'uploads/images/licence'))
-);
-app.use(
-  '/uploads/files',
-  express.static(path.join(__dirname, 'uploads/files'))
-);
+// app.use(
+//   '/uploads/images/car',
+//   express.static(path.join(__dirname, 'uploads/images/car'))
+// );
+// app.use(
+//   '/uploads/images/avatar',
+//   express.static(path.join(__dirname, 'uploads/images/avatar'))
+// );
+// app.use(
+//   '/uploads/images/licence',
+//   express.static(path.join(__dirname, 'uploads/images/licence'))
+// );
+// app.use(
+//   '/uploads/files',
+//   express.static(path.join(__dirname, 'uploads/files'))
+// );
 
 app.use('/api/v1', router);
 
@@ -101,4 +101,15 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-module.exports = app;
+// module.exports = app;
+
+
+module.exports.handler = async (event, context) => {
+  try {
+    const result = await app.handler(event, context);
+    return result;
+  } catch (error) {
+    console.error('Error:', error);
+    return next(new AppError(`Internal Server Error'`, 500));
+  }
+};
