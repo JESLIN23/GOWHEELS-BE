@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const serverless = require('serverless-http');
 
-// process.on('uncaughtException', (err) => {
-//   console.log(err.name,err, err.message);
-//   console.log('UNCOUGHT EXCEPTION! 💥 shutting down....');
-//   process.exit(1);
-// });
+if (process.env.NODE_ENV === 'development') {
+  process.on('uncaughtException', (err) => {
+    console.log(err.name, err, err.message);
+    console.log('UNCOUGHT EXCEPTION! 💥 shutting down....');
+    process.exit(1);
+  });
+}
+
 
 dotenv.config({ path: './config.env' });
 
@@ -17,63 +19,66 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-// mongoose
-//   .connect(DB, {
-//     useNewUrlParser: true,
-//     useUnifiedTopology: true,
-//     autoIndex: true,
-//   })
-//   .then(() => {
-//     console.log('DB connection successful!')
-//   })
-//   .catch((err) => {
-//     console.error('Error connecting to the database:', err.message);
-//   });
 
-
-const connectToDatabase = async () => {
-  try {
-    await mongoose.connect(DB, {
+if (process.env.NODE_ENV === 'development') {
+  mongoose
+    .connect(DB, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       autoIndex: true,
+    })
+    .then(() => {
+      console.log('DB connection successful!');
+    })
+    .catch((err) => {
+      console.error('Error connecting to the database:', err.message);
     });
-    console.log('DB connection successful!');
-  } catch (err) {
-    console.error('Error connecting to the database:', err.message);
-    throw err;
-  }
-};
 
-// const port = process.env.PORT || 6060;
-// const server = app.listen(port, () => {
-//   console.log(`listening ${port}`);
-// });
-
-exports.handler = async (event, context) => {
-  // Handle unhandled rejections within the Lambda function
-  process.on('unhandledRejection', (err) => {
-    console.log(err.name, err.message);
-    console.log('UNHANDLED REJECTION! 💥');
+  const port = process.env.PORT || 6060;
+  const server = app.listen(port, () => {
+    console.log(`listening ${port}`);
   });
 
-  try {
-    await connectToDatabase();
-    return await app.handler(event, context);
-  } catch (error) {
-    console.error('UNCAUGHT EXCEPTION! 💥', error.name, error.message);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal Server Error' }),
-    };
-  }
-};
+  process.on('unhandledRejection', (err) => {
+    console.log(err.name, err.message);
+    console.log('UNCOUGHT REJECTION! 💥 shutting down....');
+    server.close(() => {
+      process.exit(1);
+    });
+  });
 
-// process.on('unhandledRejection', (err) => {
-//   console.log(err.name, err.message);
-//   console.log('UNCOUGHT REJECTION! 💥 shutting down....');
-//   server.close(() => {
-//     process.exit(1);
-//   });
-// });
+} else {
 
+  const connectToDatabase = async () => {
+    try {
+      await mongoose.connect(DB, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        autoIndex: true,
+      });
+      console.log('DB connection successful!');
+    } catch (err) {
+      console.error('Error connecting to the database:', err.message);
+      throw err;
+    }
+  };
+
+  exports.handler = async (event, context) => {
+    // Handle unhandled rejections within the Lambda function
+    process.on('unhandledRejection', (err) => {
+      console.log(err.name, err.message);
+      console.log('UNHANDLED REJECTION! 💥');
+    });
+
+    try {
+      await connectToDatabase();
+      return await app.handler(event, context);
+    } catch (error) {
+      console.error('UNCAUGHT EXCEPTION! 💥', error.name, error.message);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'Internal Server Error' }),
+      };
+    }
+  };
+}
