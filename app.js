@@ -101,15 +101,16 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-// module.exports = app;
-
-
-module.exports.handler = async (event, context) => {
-  try {
-    const result = await app.handler(event, context);
-    return result;
-  } catch (error) {
-    console.error('Error:', error);
-    return next(new AppError(`Internal Server Error'`, 500));
-  }
-};
+if (process.env.NODE_ENV === 'development') {
+  module.exports = app;
+} else {
+  module.exports.handler = async (event, context) => {
+    try {
+      const result = await app.handler(event, context);
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+      return next(new AppError(`Internal Server Error'`, 500));
+    }
+  };
+}
