@@ -43,7 +43,10 @@
     "start:dev": "set NODE_ENV=development&& nodemon server.js",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
     "format": "npx prettier --write .",
-    "debug": "ndb server.js"
+    "debug": "ndb server.js",
+    "build": "npm install && npm run format && npm prune --production",
+    "package": "npm run build && zip -r deployment-package.zip . -x '*.git*' 'node_modules/.cache*' 'deploy-script.sh'",
+    "deploy": "npm run package && aws s3 cp deployment-package.zip s3://gowheels/ && aws lambda update-function-code --function-name YourLambdaFunctionName --s3-bucket gowheels --s3-key deployment-package.zip"
   },
   "name": "gowheels-be",
   "version": "1.0.0",
