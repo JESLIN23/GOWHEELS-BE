@@ -1,17 +1,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
-if (process.env.NODE_ENV === 'development') {
-  process.on('uncaughtException', (err) => {
-    console.log(err.name, err, err.message);
-    console.log('UNCOUGHT EXCEPTION! 💥 shutting down....');
-    process.exit(1);
-  });
-}
-
-
 dotenv.config({ path: './config.env' });
-
 const app = require('./app');
 
 const DB = process.env.DATABASE.replace(
@@ -19,36 +9,42 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-
-if (process.env.NODE_ENV === 'development') {
-  mongoose
-    .connect(DB, {
+const startServer = async () => {
+  try {
+    await mongoose.connect(DB, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       autoIndex: true,
-    })
-    .then(() => {
-      console.log('DB connection successful!');
-    })
-    .catch((err) => {
-      console.error('Error connecting to the database:', err.message);
+    });
+    console.log('DB connection successful!');
+
+    const port = process.env.PORT || 6060;
+    const server = app.listen(port, () => {
+      console.log(`Server listening on port ${port}`);
     });
 
-  const port = process.env.PORT || 6060;
-  const server = app.listen(port, () => {
-    console.log(`listening ${port}`);
-  });
+    process.on('unhandledRejection', (err) => {
+      console.log(err.name, err.message);
+      console.log('UNHANDLED REJECTION! 💥 shutting down....');
+      server.close(() => {
+        process.exit(1);
+      });
+    });
+  } catch (err) {
+    console.error('Error connecting to the database:', err.message);
+    process.exit(1);
+  }
+};
 
-  process.on('unhandledRejection', (err) => {
+if (process.env.NODE_ENV === 'development') {
+  process.on('uncaughtException', (err) => {
     console.log(err.name, err.message);
-    console.log('UNCOUGHT REJECTION! 💥 shutting down....');
-    server.close(() => {
-      process.exit(1);
-    });
+    console.log('UNCAUGHT EXCEPTION! 💥 shutting down....');
+    process.exit(1);
   });
 
+  startServer();
 } else {
-
   const connectToDatabase = async () => {
     try {
       await mongoose.connect(DB, {
