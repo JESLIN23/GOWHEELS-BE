@@ -28,14 +28,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Upload to S3
-        run: aws s3 cp deployment-package.zip s3://gowheels-code-deployment/
+        run: |
+          set -x
+          aws s3 cp deployment-package.zip s3://gowheels-code-deployment/
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Deploy to Lambda
         run: |
-          aws lambda update-function-code --function-name gowheels-api-v1 --s3-bucket gowheels-code-deployment --s3-key path/to/deployment-package.zip
+          aws lambda update-function-code --function-name gowheels-api-v1 --s3-bucket gowheels-code-deployment --s3-key ""
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
