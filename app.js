@@ -113,7 +113,7 @@ if (process.env.NODE_ENV === 'production') {
       console.error('Error:', error);
       return {
         statusCode: 500,
-        body: JSON.stringify({ message: 'Internal Server Error' }),
+        body: JSON.stringify({ message: 'Internal Server Errorss' }),
       };
     }
   };

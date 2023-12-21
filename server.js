@@ -73,7 +73,7 @@ if (process.env.NODE_ENV === 'development') {
       console.error('UNCAUGHT EXCEPTION! 💥', error.name, error.message);
       return {
         statusCode: 500,
-        body: JSON.stringify({ message: 'Internal Server Error' }),
+        body: JSON.stringify({ message: 'Internal Server Errors' }),
       };
     }
   };
