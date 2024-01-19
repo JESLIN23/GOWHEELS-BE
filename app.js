@@ -100,21 +100,23 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-if (process.env.NODE_ENV === 'development') {
-  module.exports = app;
-}
+module.exports = app;
 
-if (process.env.NODE_ENV === 'production') {
-  module.exports.handler = async (event, context) => {
-    try {
-      const result = await app.handler(event, context);
-      return result;
-    } catch (error) {
-      console.error('Error:', error);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ message: 'Internal Server Errorss' }),
-      };
-    }
-  };
-}
+// if (process.env.NODE_ENV === 'development') {
+//   module.exports = app;
+// }
+
+// if (process.env.NODE_ENV === 'production') {
+//   module.exports.handler = async (event, context) => {
+//     try {
+//       const result = await app.handler(event, context);
+//       return result;
+//     } catch (error) {
+//       console.error('Error:', error);
+//       return {
+//         statusCode: 500,
+//         body: JSON.stringify({ message: 'Internal Server Errorss' }),
+//       };
+//     }
+//   };
+// }
